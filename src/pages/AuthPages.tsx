@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { errorMessage } from '../lib/errors'
 import { useDocumentTitle } from '../lib/useDocumentTitle'
+import { passwordError } from '../lib/password'
 
 function useRedirectTarget() {
   const location = useLocation()
@@ -76,6 +77,7 @@ export function LoginPage() {
           {busy && <span className="spinner" />}
           Đăng nhập
         </button>
+        <Link to="/forgot-password">Quên mật khẩu?</Link>
         <p className="muted" style={{ textAlign: 'center' }}>
           Chưa có tài khoản?{' '}
           <Link to="/register" state={location_state(target)}>
@@ -107,6 +109,12 @@ export function RegisterPage() {
     setBusy(true)
     setError(null)
     try {
+      const validation = passwordError(password)
+      if (validation) {
+        setError(validation)
+        setBusy(false)
+        return
+      }
       await register(email, password, fullName)
       navigate(target, { replace: true })
     } catch (err) {

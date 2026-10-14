@@ -9,7 +9,7 @@ server {
 
   add_header X-Content-Type-Options "nosniff" always;
   add_header X-Frame-Options "DENY" always;
-  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  add_header Referrer-Policy "no-referrer" always;
   # Ảnh bìa sự kiện có thể lấy từ bất kỳ máy chủ nào nên img-src để rộng; script chỉ cho phép của chính site
   add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
 
@@ -32,6 +32,7 @@ server {
 
   # SPA: mọi đường dẫn khác trả index.html (không cache để cập nhật bản mới ngay)
   location / {
+    add_header Referrer-Policy "no-referrer" always;
     add_header Cache-Control "no-cache";
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "DENY" always;

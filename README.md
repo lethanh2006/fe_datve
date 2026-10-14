@@ -13,6 +13,9 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 - Thanh toán với `Idempotency-Key` (thử lại sau mất mạng dùng lại cùng key nên không bị trừ tiền hai lần), huỷ đơn
 - Vé điện tử có mã QR (vẽ bằng SVG, đã kiểm chứng giải mã ra đúng mã vé) và mã đặt vé, in được; danh sách đơn của tôi theo trạng thái
 - Đăng ký, đăng nhập (JWT); tự đăng xuất khi token hết hạn
+- Trang `/account`: sửa họ tên, đổi mật khẩu và giữ phiên hiện tại bằng token mới
+- Quên/đặt lại mật khẩu qua email (`/forgot-password`, `/reset-password?token=...`), kiểm tra xác nhận mật khẩu và giới hạn UTF-8
+- Hoàn vé đã thanh toán trong thời hạn do backend trả về, xác nhận số tiền trước khi huỷ; hiển thị trạng thái hoàn tiền và ẩn QR sau khi hoàn
 
 **Quản trị** (tài khoản `ADMIN`)
 - Tổng quan: doanh thu, vé đã bán, biểu đồ 14 ngày, đơn theo trạng thái, sự kiện bán chạy
@@ -20,10 +23,13 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 - Danh sách mọi đơn kèm thông tin khách, lọc theo trạng thái và khách hàng
 - Soát vé: nhập hoặc quét mã QR bằng máy quét (gõ phím + Enter), báo cho vào / vé đã quét / mã sai, lưu lịch sử lượt quét
 - Giờ suất diễn luôn nhập/hiển thị theo múi giờ của sự kiện (mặc định `Asia/Ho_Chi_Minh`), không phụ thuộc múi giờ máy
+- Mở chi tiết đơn từ danh sách quản trị để hoàn vé ngoài thời hạn; vé đã soát không thể hoàn
 
 ## Chạy
 
 Cần backend đang chạy (xem README của BE_datve), mặc định ở `http://localhost:8080`.
+
+Backend cần chạy migration V4/V5. Cấu hình `APP_URL` trỏ tới URL frontend và `SMTP_URL` ở backend để nhận email thật; khi dev chưa có SMTP, liên kết đặt lại mật khẩu nằm trong log backend. Thanh toán/hoàn tiền vẫn là giả lập.
 
 ```bash
 cp .env.example .env     # tuỳ chọn
@@ -76,4 +82,6 @@ src/
 
 - Token JWT lưu ở `localStorage` để giữ phiên khi tải lại trang; mọi dữ liệu hiển thị đều được React escape, không dùng `dangerouslySetInnerHTML`.
 - Ghế và giá hiển thị chỉ để xem; số tiền thật do server tính từ DB khi giữ ghế và khi thanh toán.
+- Thời hạn hoàn vé lấy từ `refundableUntil`, đối chiếu giờ server; API luôn kiểm tra lại quyền, thời hạn và trạng thái vé. Sau hoàn tiền, cache đơn, ghế và thống kê được làm mới.
+- Token mới sau đổi mật khẩu thay thế token cũ ngay; phản hồi 401 của request cũ về muộn không làm mất phiên mới.
 - Ô "Giả lập thanh toán thất bại" chỉ có ở dev server (`import.meta.env.DEV`) và chỉ có tác dụng khi backend bật `PAYMENT_ALLOW_SIMULATION`.

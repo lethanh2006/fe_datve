@@ -46,6 +46,7 @@ export function Layout() {
               Sự kiện
             </NavLink>
             {user && <NavLink to="/bookings">Vé của tôi</NavLink>}
+            {user && <NavLink to="/account">Tài khoản</NavLink>}
             {user?.role === 'ADMIN' && <NavLink to="/admin">Quản trị</NavLink>}
           </nav>
           <div className="site-user">

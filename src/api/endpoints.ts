@@ -23,6 +23,13 @@ export const api = {
   register: (email: string, password: string, fullName: string) =>
     request<AuthResponse>('/api/auth/register', { method: 'POST', body: { email, password, fullName } }),
   me: () => request<User>('/api/auth/me'),
+  updateProfile: (fullName: string) => request<User>('/api/auth/me', { method: 'PUT', body: { fullName } }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<AuthResponse>('/api/auth/password', { method: 'PUT', body: { currentPassword, newPassword } }),
+  forgotPassword: (email: string) =>
+    request<{ message: string }>('/api/auth/forgot-password', { method: 'POST', body: { email } }),
+  resetPassword: (token: string, password: string) =>
+    request<void>('/api/auth/reset-password', { method: 'POST', body: { token, password } }),
 
   // ---- danh mục ----
   events: (query: { q?: string; category?: string; page?: number; size?: number }) =>
@@ -40,6 +47,7 @@ export const api = {
     request<Page<Booking>>('/api/bookings', { query }),
   booking: (id: number) => request<Booking>(`/api/bookings/${id}`),
   cancelBooking: (id: number) => request<Booking>(`/api/bookings/${id}/cancel`, { method: 'POST' }),
+  refundBooking: (id: number) => request<Booking>(`/api/bookings/${id}/refund`, { method: 'POST', body: {} }),
   pay: (bookingId: number, idempotencyKey: string, simulate?: 'SUCCESS' | 'FAILED') =>
     request<Payment>(`/api/bookings/${bookingId}/payments`, {
       method: 'POST',

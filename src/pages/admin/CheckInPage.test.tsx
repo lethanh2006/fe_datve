@@ -23,6 +23,8 @@ const booking = (over: Partial<Booking> = {}): Booking => ({
   createdAt: '2026-10-14T00:00:00.000Z',
   ticketCode: '0123456789abcdef',
   checkedInAt: null,
+  refundableUntil: null,
+  refundedAt: null,
   customer: { id: 2, email: 'khach@test.com', fullName: 'Nguyễn Văn Khách' },
   ...over,
 })
@@ -64,7 +66,10 @@ describe('CheckInPage', () => {
 
   it('mã sai: báo lỗi và ghi vào lịch sử quét', async () => {
     mockFetch({
-      'POST /api/admin/bookings/check-in': () => ({ status: 404, body: { code: 'TICKET_NOT_FOUND', message: 'Mã vé không hợp lệ' } }),
+      'POST /api/admin/bookings/check-in': () => ({
+        status: 404,
+        body: { code: 'TICKET_NOT_FOUND', message: 'Mã vé không hợp lệ' },
+      }),
     })
     renderPage()
     await userEvent.type(screen.getByLabelText('Mã vé'), 'saima{Enter}')

@@ -5,7 +5,7 @@ export type Role = 'USER' | 'ADMIN'
 export type BookingStatus = 'PENDING' | 'PAYMENT_PROCESSING' | 'CONFIRMED' | 'CANCELLED' | 'EXPIRED'
 export type SeatStatus = 'AVAILABLE' | 'HELD' | 'BOOKED'
 export type ReservationStatus = 'HELD' | 'BOOKED' | 'RELEASED'
-export type PaymentStatus = 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED'
+export type PaymentStatus = 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED' | 'REFUNDED'
 
 export interface User {
   id: number
@@ -83,6 +83,8 @@ export interface Booking {
   ticketCode: string | null
   /** Thời điểm soát vé tại cửa, null nếu chưa vào */
   checkedInAt: string | null
+  refundableUntil: string | null
+  refundedAt: string | null
   customer?: { id: number; email: string; fullName: string }
 }
 

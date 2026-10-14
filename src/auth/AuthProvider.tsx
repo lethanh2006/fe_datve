@@ -79,6 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (email, password) => startSession(await api.login(email, password)),
       register: async (email, password, fullName) => startSession(await api.register(email, password, fullName)),
       logout: clearSession,
+      updateProfile: async (fullName) => {
+        const updated = await api.updateProfile(fullName)
+        setUser(updated)
+        return updated
+      },
+      changePassword: async (currentPassword, newPassword) =>
+        startSession(await api.changePassword(currentPassword, newPassword)),
     }),
     [user, loading, startSession, clearSession],
   )

@@ -64,7 +64,13 @@ export default function AdminBookingsPage() {
           Tất cả
         </button>
         {BOOKING_STATUSES.map((s) => (
-          <button key={s} type="button" className="chip" aria-pressed={status === s} onClick={() => update({ status: s, page: 0 })}>
+          <button
+            key={s}
+            type="button"
+            className="chip"
+            aria-pressed={status === s}
+            onClick={() => update({ status: s, page: 0 })}
+          >
             {BOOKING_STATUS_LABEL[s]}
           </button>
         ))}
@@ -109,6 +115,7 @@ export default function AdminBookingsPage() {
                     <td className="num">{formatVnd(b.totalAmount)}</td>
                     <td>
                       <StatusBadge status={b.status} />
+                      {b.refundedAt && <div className="muted">Đã hoàn tiền · {formatDateTime(b.refundedAt)}</div>}
                     </td>
                     <td className="muted">{formatDateTime(b.createdAt)}</td>
                   </tr>
@@ -116,7 +123,11 @@ export default function AdminBookingsPage() {
               </tbody>
             </table>
           </div>
-          <Pagination page={bookings.data.page} totalPages={bookings.data.totalPages} onChange={(p) => update({ page: p })} />
+          <Pagination
+            page={bookings.data.page}
+            totalPages={bookings.data.totalPages}
+            onChange={(p) => update({ page: p })}
+          />
         </>
       )}
     </div>

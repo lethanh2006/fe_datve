@@ -23,6 +23,8 @@ const makeBooking = (over: Partial<Booking> = {}): Booking => ({
   createdAt: new Date().toISOString(),
   ticketCode: null,
   checkedInAt: null,
+  refundableUntil: null,
+  refundedAt: null,
   ...over,
 })
 
@@ -90,10 +92,81 @@ describe('BookingPage', () => {
   })
 
   it('vé đã được soát thì hiện giờ vào cửa', async () => {
-    booking = makeBooking({ status: 'CONFIRMED', ticketCode: '0123456789abcdef', checkedInAt: '2026-10-17T12:10:00.000Z' })
+    booking = makeBooking({
+      status: 'CONFIRMED',
+      ticketCode: '0123456789abcdef',
+      checkedInAt: '2026-10-17T12:10:00.000Z',
+    })
     mockFetch({ 'GET /api/bookings/7': () => ({ body: booking }) })
     renderBooking()
     expect(await screen.findByText('Đã soát vé · 19:10')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Huỷ vé và hoàn tiền' })).not.toBeInTheDocument()
+  })
+
+  it('hoàn vé cần xác nhận; thành công xoá QR và hiện số tiền đã hoàn', async () => {
+    booking = makeBooking({
+      status: 'CONFIRMED',
+      ticketCode: '0123456789abcdef',
+      refundableUntil: new Date(Date.now() + 86400000).toISOString(),
+    })
+    const calls = mockFetch({
+      'GET /api/bookings/7': () => ({ body: booking }),
+      'POST /api/bookings/7/refund': () => {
+        booking = { ...booking, status: 'CANCELLED', refundableUntil: null, refundedAt: new Date().toISOString() }
+        return { body: booking }
+      },
+    })
+    renderBooking()
+    await userEvent.click(await screen.findByRole('button', { name: 'Huỷ vé và hoàn tiền' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText(/Số tiền hoàn/)).toHaveTextContent('1.000.000')
+    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(0)
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Xác nhận hoàn tiền' }))
+    expect(await screen.findByText('Đã hoàn tiền')).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /Mã QR/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(calls.find((c) => c.method === 'POST')).toMatchObject({ path: '/api/bookings/7/refund', body: {} })
+  })
+
+  it('hoàn tiền lỗi vẫn giữ vé và cho phép thử lại', async () => {
+    booking = makeBooking({
+      status: 'CONFIRMED',
+      ticketCode: '0123456789abcdef',
+      refundableUntil: new Date(Date.now() + 86400000).toISOString(),
+    })
+    mockFetch({
+      'GET /api/bookings/7': () => ({ body: booking }),
+      'POST /api/bookings/7/refund': () => ({
+        status: 409,
+        body: { code: 'REFUND_FAILED', message: 'Cổng thanh toán chưa hoàn tiền được' },
+      }),
+    })
+    renderBooking()
+    await userEvent.click(await screen.findByRole('button', { name: 'Huỷ vé và hoàn tiền' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Xác nhận hoàn tiền' }))
+    expect(await screen.findByText('Cổng thanh toán chưa hoàn tiền được')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /Mã QR/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Huỷ vé và hoàn tiền' })).toBeEnabled()
+  })
+
+  it('ẩn nút hoàn khi quá hạn, nhưng quản trị được hoàn ngoài hạn', async () => {
+    booking = makeBooking({ status: 'CONFIRMED', refundableUntil: new Date(Date.now() - 3600000).toISOString() })
+    localStorage.setItem('datve.token', 'admin-token')
+    mockFetch({
+      'GET /api/auth/me': () => ({ body: { id: 1, email: 'admin@test.com', fullName: 'Admin', role: 'ADMIN' } }),
+      'GET /api/bookings/7': () => ({ body: booking }),
+    })
+    renderBooking()
+    expect(await screen.findByText(/quyền quản trị để hoàn vé/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Huỷ vé và hoàn tiền' })).toBeEnabled()
+  })
+
+  it('khách không có nút hoàn vé khi đã quá hạn', async () => {
+    booking = makeBooking({ status: 'CONFIRMED', refundableUntil: new Date(Date.now() - 3600000).toISOString() })
+    mockFetch({ 'GET /api/bookings/7': () => ({ body: booking }) })
+    renderBooking()
+    expect(await screen.findByText(/Đã quá thời hạn tự hoàn vé/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Huỷ vé và hoàn tiền' })).not.toBeInTheDocument()
   })
 
   it('lần thanh toán thất bại xong thì thử lại bằng Idempotency-Key mới', async () => {
@@ -120,7 +193,8 @@ describe('BookingPage', () => {
     let attempt = 0
     const calls = mockFetch({
       'GET /api/bookings/7': () => ({ body: booking }),
-      'POST /api/bookings/7/payments': () => (++attempt === 1 ? 'network-error' : { status: 200, body: payment('SUCCESS', 'CONFIRMED') }),
+      'POST /api/bookings/7/payments': () =>
+        ++attempt === 1 ? 'network-error' : { status: 200, body: payment('SUCCESS', 'CONFIRMED') },
     })
     renderBooking()
 
@@ -145,7 +219,10 @@ describe('BookingPage', () => {
 
   it('đơn không tồn tại: hiện thông báo không tìm thấy', async () => {
     mockFetch({
-      'GET /api/bookings/7': () => ({ status: 404, body: { code: 'BOOKING_NOT_FOUND', message: 'Không tìm thấy đơn đặt vé có id 7' } }),
+      'GET /api/bookings/7': () => ({
+        status: 404,
+        body: { code: 'BOOKING_NOT_FOUND', message: 'Không tìm thấy đơn đặt vé có id 7' },
+      }),
     })
     renderBooking()
     expect(await screen.findByText('Không tìm thấy nội dung')).toBeInTheDocument()
@@ -173,4 +250,3 @@ describe('BookingPage', () => {
     expect(calls.filter((c) => c.path.endsWith('/cancel'))).toHaveLength(1)
   })
 })
-

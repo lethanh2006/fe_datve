@@ -55,6 +55,7 @@ function buildUrl(path: string, query?: Query) {
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json', ...options.headers }
+  const requestToken = authToken
   if (options.body !== undefined) headers['Content-Type'] = 'application/json'
   if (authToken) headers.Authorization = `Bearer ${authToken}`
 
@@ -91,7 +92,9 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       body.code ?? `HTTP_${response.status}`,
       body.message ?? 'Có lỗi xảy ra, vui lòng thử lại',
     )
-    if (response.status === 401 && authToken && error.code === 'INVALID_TOKEN') onUnauthorized?.()
+    // Request cũ có thể về muộn sau khi đổi mật khẩu đã cấp token mới.
+    if (response.status === 401 && requestToken && requestToken === authToken && error.code === 'INVALID_TOKEN')
+      onUnauthorized?.()
     throw error
   }
   return data as T

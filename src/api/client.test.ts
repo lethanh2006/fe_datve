@@ -40,7 +40,10 @@ describe('request', () => {
   })
 
   it('lỗi không có body JSON vẫn cho thông báo mặc định', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>502</html>', { status: 502 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('<html>502</html>', { status: 502 })),
+    )
     const error = (await request('/api/x').catch((e: unknown) => e)) as ApiError
     expect(error).toMatchObject({ status: 502, code: 'HTTP_502' })
     expect(error.message).not.toBe('')
@@ -77,5 +80,26 @@ describe('request', () => {
     mockFetch({ 'GET /api/x': () => ({ body: {}, headers: { Date: new Date(serverTime).toUTCString() } }) })
     await request('/api/x')
     expect(Math.abs(serverNow() - Date.now() - 90_000)).toBeLessThan(2000)
+  })
+
+  it('401 của token cũ về muộn không đăng xuất phiên vừa đổi mật khẩu', async () => {
+    const handler = vi.fn()
+    setUnauthorizedHandler(handler)
+    setAuthToken('old-token')
+    let finish!: (value: Response) => void
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            finish = resolve
+          }),
+      ),
+    )
+    const pending = request('/api/auth/me').catch((error: unknown) => error)
+    setAuthToken('new-token')
+    finish(new Response(JSON.stringify({ code: 'INVALID_TOKEN' }), { status: 401 }))
+    await pending
+    expect(handler).not.toHaveBeenCalled()
   })
 })

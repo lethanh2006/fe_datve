@@ -29,6 +29,10 @@ export function Modal({ open, title, onClose, children, footer, width }: ModalPr
       aria-labelledby={titleId}
       style={width ? { width: `min(${width}px, calc(100vw - 32px))` } : undefined}
       onClose={onClose}
+      onCancel={(e) => {
+        e.preventDefault()
+        onClose()
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
