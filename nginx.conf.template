@@ -9,6 +9,8 @@ server {
 
   add_header X-Content-Type-Options "nosniff" always;
   add_header X-Frame-Options "DENY" always;
+  # Chỉ trang của mình được dùng camera (soát vé); tắt mic và vị trí
+  add_header Permissions-Policy "camera=(self), microphone=(), geolocation=()" always;
   add_header Referrer-Policy "no-referrer" always;
   # Ảnh bìa sự kiện có thể lấy từ bất kỳ máy chủ nào nên img-src để rộng; script chỉ cho phép của chính site
   add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
@@ -53,6 +55,7 @@ server {
     add_header Cache-Control "no-cache";
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "DENY" always;
+    add_header Permissions-Policy "camera=(self), microphone=(), geolocation=()" always;
     add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
     try_files $uri /index.html;
   }

@@ -4,6 +4,8 @@ import { ApiError } from '../../api/client'
 import { api } from '../../api/endpoints'
 import type { Booking, CheckInResponse } from '../../api/types'
 import { Icon } from '../../components/Icon'
+import { QrScanner } from '../../components/QrScanner'
+import { beep } from '../../lib/beep'
 import { bookingCode, formatDateTime, formatTime } from '../../lib/format'
 import { errorMessage } from '../../lib/errors'
 
@@ -49,6 +51,8 @@ function TicketSummary({ booking }: { booking: Booking }) {
 export default function CheckInPage() {
   const [code, setCode] = useState('')
   const [history, setHistory] = useState<ScanEntry[]>([])
+  const [camera, setCamera] = useState(false)
+  const [sound, setSound] = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
   const nextKey = useRef(1)
 
@@ -65,6 +69,7 @@ export default function CheckInPage() {
           }
         : { key: nextKey.current++, at: Date.now(), code: ticketCode, outcome: 'error', label: errorMessage(error) }
       setHistory((h) => [entry, ...h].slice(0, 10))
+      if (sound) beep(entry.outcome === 'ok' ? 'ok' : entry.outcome === 'again' ? 'warn' : 'error')
       // Xoá ô nhập và đặt con trỏ lại để quét vé tiếp theo ngay
       setCode('')
       inputRef.current?.focus()
@@ -86,8 +91,17 @@ export default function CheckInPage() {
       <form className="card card-pad stack" onSubmit={submit}>
         <div>
           <h2>Soát vé</h2>
-          <p className="muted">Quét mã QR trên vé điện tử bằng máy quét, hoặc nhập mã vé rồi nhấn Enter.</p>
+          <p className="muted">Quét mã QR bằng camera hoặc máy quét, hoặc nhập mã vé rồi nhấn Enter.</p>
         </div>
+        <div className="row row-wrap">
+          <button type="button" className="btn btn-outline" aria-pressed={camera} onClick={() => setCamera((on) => !on)}>
+            <Icon name={camera ? 'x' : 'search'} /> {camera ? 'Tắt camera' : 'Quét bằng camera'}
+          </button>
+          <label className="check">
+            <input type="checkbox" checked={sound} onChange={(e) => setSound(e.target.checked)} /> Âm báo
+          </label>
+        </div>
+        {camera && <QrScanner paused={scan.isPending} onScan={(text) => scan.mutate(text.trim().toLowerCase())} />}
         <div className="field">
           <label htmlFor="ticket-code">Mã vé</label>
           <div className="row">

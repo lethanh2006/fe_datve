@@ -22,7 +22,7 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 - Thêm/sửa/xoá sự kiện; thêm suất diễn kèm sinh ghế theo khu (`A-D`, số ghế/hàng, giá); thêm ghế; xoá suất
 - Danh sách mọi đơn kèm thông tin khách, lọc theo trạng thái và khách hàng
 - Người dùng: tìm kiếm, lọc theo vai trò/trạng thái, xem số đơn và tổng chi tiêu, nâng/hạ quyền admin, khoá/mở khoá tài khoản (khoá thì bị đăng xuất ngay; không tự khoá hay tự đổi quyền của mình)
-- Soát vé: nhập hoặc quét mã QR bằng máy quét (gõ phím + Enter), báo cho vào / vé đã quét / mã sai, lưu lịch sử lượt quét
+- Soát vé: quét mã QR **bằng camera điện thoại/máy tính** (dùng BarcodeDetector của trình duyệt nếu có, không thì jsQR; chỉ chạy trên HTTPS hoặc localhost), bằng máy quét (gõ phím + Enter) hoặc nhập tay; báo cho vào / vé đã quét / mã sai, có âm báo, lưu lịch sử lượt quét. Đã kiểm chứng trên Chrome thật với camera giả phát đúng mã QR của vé
 - Giờ suất diễn luôn nhập/hiển thị theo múi giờ của sự kiện (mặc định `Asia/Ho_Chi_Minh`), không phụ thuộc múi giờ máy
 - Mở chi tiết đơn từ danh sách quản trị để hoàn vé ngoài thời hạn; vé đã soát không thể hoàn
 

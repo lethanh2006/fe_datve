@@ -29,6 +29,18 @@ const booking = (over: Partial<Booking> = {}): Booking => ({
   ...over,
 })
 
+// Camera thật không có trong jsdom: thay bằng nút giả lập việc đọc được mã
+vi.mock('../../components/QrScanner', () => ({
+  QrScanner: ({ onScan, paused }: { onScan: (text: string) => void; paused?: boolean }) => (
+    <div>
+      <span>camera-{paused ? 'tạm dừng' : 'chạy'}</span>
+      <button type="button" onClick={() => onScan('  0123456789ABCDEF ')}>
+        giả lập đọc mã
+      </button>
+    </div>
+  ),
+}))
+
 const renderPage = () => renderApp(<CheckInPage />)
 
 describe('CheckInPage', () => {
@@ -86,5 +98,50 @@ describe('CheckInPage', () => {
     expect(screen.getByRole('button', { name: 'Soát vé' })).toBeDisabled()
     await userEvent.type(screen.getByLabelText('Mã vé'), '   {Enter}')
     expect(calls).toHaveLength(0)
+  })
+
+  it('quét bằng camera: bật/tắt camera và gửi mã đã chuẩn hoá', async () => {
+    const calls = mockFetch({
+      'POST /api/admin/bookings/check-in': () => ({ body: { result: 'CHECKED_IN', booking: booking() } }),
+    })
+    renderPage()
+    expect(screen.queryByText(/^camera-/)).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Quét bằng camera' }))
+    expect(screen.getByText('camera-chạy')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'giả lập đọc mã' }))
+
+    expect(await screen.findByText('Hợp lệ - cho vào')).toBeInTheDocument()
+    expect(calls[0]!.body).toEqual({ ticketCode: '0123456789abcdef' })
+    // camera vẫn bật để quét vé kế tiếp
+    expect(screen.getByText('camera-chạy')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tắt camera' }))
+    expect(screen.queryByText(/^camera-/)).not.toBeInTheDocument()
+  })
+
+  it('phát âm báo theo kết quả và cho tắt âm báo', async () => {
+    const beepSpy = vi.spyOn(await import('../../lib/beep'), 'beep').mockImplementation(() => {})
+    let result: 'CHECKED_IN' | 'ALREADY_CHECKED_IN' = 'CHECKED_IN'
+    mockFetch({
+      'POST /api/admin/bookings/check-in': () => ({
+        body: { result, booking: booking({ checkedInAt: result === 'ALREADY_CHECKED_IN' ? '2026-10-17T12:10:00.000Z' : null }) },
+      }),
+    })
+    renderPage()
+    await userEvent.type(screen.getByLabelText('Mã vé'), 'abc{Enter}')
+    await screen.findByText('Hợp lệ - cho vào')
+    expect(beepSpy).toHaveBeenLastCalledWith('ok')
+
+    result = 'ALREADY_CHECKED_IN'
+    await userEvent.type(screen.getByLabelText('Mã vé'), 'abc{Enter}')
+    await screen.findByText(/Vé đã được quét lúc/)
+    expect(beepSpy).toHaveBeenLastCalledWith('warn')
+
+    beepSpy.mockClear()
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Âm báo' }))
+    await userEvent.type(screen.getByLabelText('Mã vé'), 'abc{Enter}')
+    await screen.findByText(/Vé đã được quét lúc/)
+    expect(beepSpy).not.toHaveBeenCalled()
   })
 })
