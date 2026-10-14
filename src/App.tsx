@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
@@ -10,6 +10,13 @@ import { LoginPage, RegisterPage } from './pages/AuthPages'
 import { MyBookingsPage } from './pages/MyBookingsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SeatSelectionPage } from './pages/SeatSelectionPage'
+
+// Trang quản trị ít người dùng nên tách chunk riêng
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
+const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
+const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsPage'))
+const AdminEventPage = lazy(() => import('./pages/admin/AdminEventPage'))
+const AdminBookingsPage = lazy(() => import('./pages/admin/AdminBookingsPage'))
 
 export default function App() {
   return (
@@ -37,6 +44,19 @@ export default function App() {
           />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route
+            path="admin"
+            element={
+              <RequireAuth role="ADMIN">
+                <AdminLayout />
+              </RequireAuth>
+            }
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="events" element={<AdminEventsPage />} />
+            <Route path="events/:id" element={<AdminEventPage />} />
+            <Route path="bookings" element={<AdminBookingsPage />} />
+          </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
