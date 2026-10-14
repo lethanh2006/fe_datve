@@ -151,3 +151,17 @@ export interface AdminUser {
   confirmedBookings: number
   totalSpent: number
 }
+
+export type EmailStatus = 'PENDING' | 'SENT' | 'FAILED'
+
+export interface AdminEmail {
+  id: number
+  to: string
+  subject: string
+  status: EmailStatus
+  attempts: number
+  nextAttemptAt: string
+  lastError: string | null
+  createdAt: string
+  sentAt: string | null
+}

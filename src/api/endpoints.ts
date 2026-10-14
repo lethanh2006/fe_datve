@@ -1,9 +1,11 @@
 import { request } from './client'
 import type {
+  AdminEmail,
   AdminUser,
   AuthResponse,
   Booking,
   CheckInResponse,
+  EmailStatus,
   BookingStatus,
   EventInput,
   EventSummary,
@@ -69,6 +71,9 @@ export const api = {
     request<AdminUser>(`/api/admin/users/${id}/role`, { method: 'PUT', body: { role } }),
   setUserDisabled: (id: number, disabled: boolean) =>
     request<AdminUser>(`/api/admin/users/${id}/status`, { method: 'PUT', body: { disabled } }),
+  adminEmails: (query: { status?: EmailStatus; page?: number; size?: number }) =>
+    request<Page<AdminEmail>>('/api/admin/emails', { query }),
+  retryEmail: (id: number) => request<{ message: string }>(`/api/admin/emails/${id}/retry`, { method: 'POST' }),
   createEvent: (input: EventInput) => request<EventSummary>('/api/admin/events', { method: 'POST', body: input }),
   updateEvent: (id: number, input: EventInput) =>
     request<EventSummary>(`/api/admin/events/${id}`, { method: 'PUT', body: input }),
