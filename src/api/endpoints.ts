@@ -1,5 +1,6 @@
 import { request } from './client'
 import type {
+  AdminUser,
   AuthResponse,
   Booking,
   CheckInResponse,
@@ -8,6 +9,7 @@ import type {
   EventSummary,
   Page,
   Payment,
+  Role,
   Seat,
   SeatSectionInput,
   Showtime,
@@ -61,6 +63,12 @@ export const api = {
     request<Page<Booking>>('/api/admin/bookings', { query }),
   checkIn: (ticketCode: string) =>
     request<CheckInResponse>('/api/admin/bookings/check-in', { method: 'POST', body: { ticketCode } }),
+  adminUsers: (query: { q?: string; role?: Role; status?: 'ACTIVE' | 'DISABLED'; page?: number; size?: number }) =>
+    request<Page<AdminUser>>('/api/admin/users', { query }),
+  setUserRole: (id: number, role: Role) =>
+    request<AdminUser>(`/api/admin/users/${id}/role`, { method: 'PUT', body: { role } }),
+  setUserDisabled: (id: number, disabled: boolean) =>
+    request<AdminUser>(`/api/admin/users/${id}/status`, { method: 'PUT', body: { disabled } }),
   createEvent: (input: EventInput) => request<EventSummary>('/api/admin/events', { method: 'POST', body: input }),
   updateEvent: (id: number, input: EventInput) =>
     request<EventSummary>(`/api/admin/events/${id}`, { method: 'PUT', body: input }),

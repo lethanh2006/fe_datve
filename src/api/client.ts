@@ -34,6 +34,9 @@ export function setUnauthorizedHandler(handler: (() => void) | null) {
   onUnauthorized = handler
 }
 
+/** URL đầy đủ tới một đường dẫn API (dùng cho EventSource, vốn không đi qua fetch). */
+export const apiUrl = (path: string) => `${BASE_URL}${path}`
+
 type Query = Record<string, string | number | boolean | null | undefined>
 
 export interface RequestOptions {

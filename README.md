@@ -8,7 +8,7 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 **Khách**
 - Danh sách sự kiện: tìm kiếm, lọc thể loại, phân trang (trạng thái nằm trên URL nên Back/Forward và chia sẻ link đều đúng)
 - Chi tiết sự kiện và các suất diễn kèm số ghế còn lại, giá thấp nhất
-- Sơ đồ chọn ghế theo hàng và hạng ghế, tự làm mới 8 giây/lần; ghế vừa bị người khác giữ sẽ tự bỏ khỏi lựa chọn
+- Sơ đồ chọn ghế theo hàng và hạng ghế, **cập nhật tức thì** qua Server-Sent Events (người khác giữ/huỷ/mua ghế thì sơ đồ đổi sau chưa đầy 1 giây, không cần tải lại); mất luồng thì tự quay về làm mới 8 giây/lần. Ghế đang chọn mà bị người khác lấy sẽ tự bỏ khỏi lựa chọn
 - Giữ ghế 5 phút, đồng hồ đếm ngược chính xác theo giờ server (bù lệch đồng hồ máy)
 - Thanh toán với `Idempotency-Key` (thử lại sau mất mạng dùng lại cùng key nên không bị trừ tiền hai lần), huỷ đơn
 - Vé điện tử có mã QR (vẽ bằng SVG, đã kiểm chứng giải mã ra đúng mã vé) và mã đặt vé, in được; danh sách đơn của tôi theo trạng thái
@@ -21,6 +21,7 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 - Tổng quan: doanh thu, vé đã bán, biểu đồ 14 ngày, đơn theo trạng thái, sự kiện bán chạy
 - Thêm/sửa/xoá sự kiện; thêm suất diễn kèm sinh ghế theo khu (`A-D`, số ghế/hàng, giá); thêm ghế; xoá suất
 - Danh sách mọi đơn kèm thông tin khách, lọc theo trạng thái và khách hàng
+- Người dùng: tìm kiếm, lọc theo vai trò/trạng thái, xem số đơn và tổng chi tiêu, nâng/hạ quyền admin, khoá/mở khoá tài khoản (khoá thì bị đăng xuất ngay; không tự khoá hay tự đổi quyền của mình)
 - Soát vé: nhập hoặc quét mã QR bằng máy quét (gõ phím + Enter), báo cho vào / vé đã quét / mã sai, lưu lịch sử lượt quét
 - Giờ suất diễn luôn nhập/hiển thị theo múi giờ của sự kiện (mặc định `Asia/Ho_Chi_Minh`), không phụ thuộc múi giờ máy
 - Mở chi tiết đơn từ danh sách quản trị để hoàn vé ngoài thời hạn; vé đã soát không thể hoàn
@@ -53,7 +54,7 @@ docker build -t datve-web .
 docker run -p 8081:80 -e BACKEND_URL=http://host.docker.internal:8080 datve-web   # http://localhost:8081
 ```
 
-Image gồm nginx phục vụ bản build, trả `index.html` cho mọi đường dẫn SPA, chuyển tiếp `/api/` sang `BACKEND_URL`, cache vô thời hạn cho `/assets/`, kèm header bảo mật và CSP (script chỉ từ chính site). Nếu FE và API ở hai domain khác nhau, build với `--build-arg VITE_API_BASE_URL=https://api.example.com` và đặt `CORS_ORIGINS` ở backend.
+Image gồm nginx phục vụ bản build, trả `index.html` cho mọi đường dẫn SPA, chuyển tiếp `/api/` sang `BACKEND_URL` (riêng luồng SSE `/api/showtimes/<id>/seats/events` được tắt đệm và cho giữ kết nối lâu, nếu proxy khác nginx thì cũng phải tắt buffering cho đường dẫn này), cache vô thời hạn cho `/assets/`, kèm header bảo mật và CSP (script chỉ từ chính site). Nếu FE và API ở hai domain khác nhau, build với `--build-arg VITE_API_BASE_URL=https://api.example.com` và đặt `CORS_ORIGINS` ở backend.
 
 ## Biến môi trường
 

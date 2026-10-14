@@ -14,9 +14,12 @@ import { formatDate, formatTimeRange, formatVnd } from '../lib/format'
 import { categoryLabel } from '../lib/seats'
 import { useDocumentTitle } from '../lib/useDocumentTitle'
 import { useNow } from '../lib/useNow'
+import { useSeatStream } from '../lib/useSeatStream'
 
 export const MAX_SEATS = 10
-const REFRESH_MS = 8000
+// Khi luồng SSE đang nối thì chỉ cần làm mới thưa như một lớp bảo hiểm; mất luồng thì làm mới dày hơn
+const LIVE_REFRESH_MS = 30_000
+const POLL_REFRESH_MS = 8000
 
 export function SeatSelectionPage() {
   const id = Number(useParams().id)
@@ -35,12 +38,16 @@ export function SeatSelectionPage() {
     queryFn: () => api.event(eventId!),
     enabled: eventId !== undefined,
   })
-  // Sơ đồ ghế làm mới định kỳ để thấy ghế người khác vừa giữ
+  // Ghế người khác vừa giữ được đẩy về qua SSE; làm mới định kỳ chỉ là lớp bảo hiểm
+  const live = useSeatStream(id, valid, () => {
+    void queryClient.invalidateQueries({ queryKey: ['seats', id] })
+    void queryClient.invalidateQueries({ queryKey: ['showtime', id] })
+  })
   const seats = useQuery({
     queryKey: ['seats', id],
     queryFn: () => api.seats(id),
     enabled: valid,
-    refetchInterval: REFRESH_MS,
+    refetchInterval: live ? LIVE_REFRESH_MS : POLL_REFRESH_MS,
   })
   useDocumentTitle(event.data ? `Chọn ghế · ${event.data.name}` : 'Chọn ghế')
 

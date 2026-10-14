@@ -22,6 +22,23 @@ server {
     proxy_set_header X-Forwarded-Proto $scheme;
   }
 
+  # Luồng SSE theo dõi ghế: tắt đệm và cho phép giữ kết nối lâu, nếu không sự kiện sẽ bị nginx giữ lại
+  location ~ ^/api/showtimes/[0-9]+/seats/events$ {
+    proxy_pass ${BACKEND_URL};
+    proxy_http_version 1.1;
+    proxy_set_header Connection '';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 1h;
+    gzip off;
+    add_header X-Accel-Buffering no;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+
   # File build có hash trong tên nên cache vô thời hạn
   location /assets/ {
     expires 1y;

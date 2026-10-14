@@ -139,3 +139,15 @@ export interface CheckInResponse {
   result: 'CHECKED_IN' | 'ALREADY_CHECKED_IN'
   booking: Booking
 }
+
+export interface AdminUser {
+  id: number
+  email: string
+  fullName: string
+  role: Role
+  createdAt: string
+  /** Thời điểm bị khoá, null nếu đang hoạt động */
+  disabledAt: string | null
+  confirmedBookings: number
+  totalSpent: number
+}

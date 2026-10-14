@@ -1,7 +1,8 @@
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Booking, Seat } from '../api/types'
+import { FakeEventSource } from '../test/fake-event-source'
 import { mockFetch, renderApp, resetApiState } from '../test/utils'
 import { SeatSelectionPage } from './SeatSelectionPage'
 
@@ -63,6 +64,24 @@ describe('SeatSelectionPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Bỏ chọn ghế A1' }))
     expect(screen.getByText(/Tạm tính \(1\/10 ghế\)/)).toBeInTheDocument()
+  })
+
+  it('nhận sự kiện SSE thì tải lại sơ đồ ghế ngay, không chờ chu kỳ làm mới', async () => {
+    FakeEventSource.instances = []
+    vi.stubGlobal('EventSource', FakeEventSource)
+    let seats = makeSeats(3)
+    const calls = mockFetch(baseRoutes(() => seats))
+    render()
+    await seatButton('A1')
+    expect(FakeEventSource.last().url).toBe('/api/showtimes/3/seats/events')
+    const before = calls.filter((c) => c.path === '/api/showtimes/3/seats').length
+
+    // người khác vừa giữ A1: server báo qua luồng SSE
+    seats = seats.map((s) => (s.id === 1 ? { ...s, status: 'HELD' as const } : s))
+    act(() => FakeEventSource.last().emit('seats'))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Ghế A1,.*đang được giữ/ })).toBeDisabled())
+    expect(calls.filter((c) => c.path === '/api/showtimes/3/seats').length).toBeGreaterThan(before)
   })
 
   it('không cho chọn quá 10 ghế', async () => {
