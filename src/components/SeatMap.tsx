@@ -46,13 +46,16 @@ export function SeatMap({ seats, selectedIds, onToggle, disabled }: SeatMapProps
                       ].join(' ')}
                       style={{ '--cat': `var(--cat-${categoryColorIndex(seat.category)})` } as React.CSSProperties}
                       aria-pressed={selected}
-                      aria-label={`Ghế ${seat.seatCode}, ${categoryLabel(seat.category)}, ${formatVnd(seat.faceValue)}, ${
-                        selected ? 'đang chọn' : STATUS_TEXT[seat.status]
-                      }`}
                       disabled={disabled || (unavailable && !selected)}
                       onClick={() => onToggle(seat)}
                     >
-                      {seat.status === 'BOOKED' ? '×' : seat.seatCode.replace(/^[A-Za-z]+/, '')}
+                      {/* Số ghế hiển thị là ký hiệu rút gọn; tên đầy đủ cho trình đọc màn hình nằm ở phần ẩn */}
+                      <span aria-hidden="true">{seat.status === 'BOOKED' ? '×' : seat.seatCode.replace(/^[A-Za-z]+/, '')}</span>
+                      <span className="sr-only">
+                        {`Ghế ${seat.seatCode}, ${categoryLabel(seat.category)}, ${formatVnd(seat.faceValue)}, ${
+                          selected ? 'đang chọn' : STATUS_TEXT[seat.status]
+                        }`}
+                      </span>
                     </button>
                   )
                 })}

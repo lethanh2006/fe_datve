@@ -124,6 +124,8 @@ export function SeatSelectionPage() {
         <span aria-current="page">Chọn ghế</span>
       </nav>
 
+      <h1 className="sr-only">Chọn ghế{event.data ? `: ${event.data.name}` : ''}</h1>
+
       <div className="seat-layout">
         <section className="card card-pad seat-panel" aria-labelledby="seatmap-title">
           <div className="section-head">

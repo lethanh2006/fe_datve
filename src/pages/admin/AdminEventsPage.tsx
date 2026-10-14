@@ -89,8 +89,9 @@ export default function AdminEventsPage() {
                   <th>Thể loại</th>
                   <th>Suất sắp tới</th>
                   <th className="num">Giá từ</th>
-                  <th />
-                </tr>
+                  <th>
+                    <span className="sr-only">Thao tác</span>
+                  </th>                </tr>
               </thead>
               <tbody>
                 {events.data.content.map((e) => (

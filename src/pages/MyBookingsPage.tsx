@@ -23,7 +23,7 @@ function BookingItem({ booking }: { booking: Booking }) {
             <StatusBadge status={booking.status} />
             {booking.status === 'PENDING' && booking.expiresAt && <Countdown expiresAt={booking.expiresAt} />}
           </div>
-          <h3>{booking.eventName}</h3>
+          <h2 className="booking-item-title">{booking.eventName}</h2>
           <p className="muted">
             <Icon name="calendar" size={14} /> {formatDateTime(booking.startTime)} · {booking.venue}
           </p>

@@ -129,6 +129,10 @@ a {
 a:hover {
   text-decoration: underline;
 }
+/* Liên kết nằm giữa đoạn văn không được chỉ phân biệt bằng màu */
+p a:not(.btn) {
+  text-decoration: underline;
+}
 img {
   max-width: 100%;
   display: block;

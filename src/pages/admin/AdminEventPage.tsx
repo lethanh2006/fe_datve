@@ -226,8 +226,9 @@ export default function AdminEventPage() {
                   <th>Thời gian</th>
                   <th className="num">Ghế còn / tổng</th>
                   <th className="num">Giá từ</th>
-                  <th />
-                </tr>
+                  <th>
+                    <span className="sr-only">Thao tác</span>
+                  </th>                </tr>
               </thead>
               <tbody>
                 {showtimes.data.map((s) => (
