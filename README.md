@@ -56,6 +56,17 @@ docker run -p 8081:80 -e BACKEND_URL=http://host.docker.internal:8080 datve-web 
 
 Image gồm nginx phục vụ bản build, trả `index.html` cho mọi đường dẫn SPA, chuyển tiếp `/api/` sang `BACKEND_URL` (riêng luồng SSE `/api/showtimes/<id>/seats/events` được tắt đệm và cho giữ kết nối lâu, nếu proxy khác nginx thì cũng phải tắt buffering cho đường dẫn này), cache vô thời hạn cho `/assets/`, kèm header bảo mật và CSP (script chỉ từ chính site). Nếu FE và API ở hai domain khác nhau, build với `--build-arg VITE_API_BASE_URL=https://api.example.com` và đặt `CORS_ORIGINS` ở backend.
 
+### Chạy cả hệ thống bằng một lệnh
+
+`docker-compose.yaml` dựng PostgreSQL + API (build thẳng từ repo [BE_datve](https://github.com/lethanh2006/BE_datve)) + web:
+
+```bash
+JWT_SECRET=$(openssl rand -hex 32) docker compose up -d --build     # http://localhost:8081
+docker compose run --rm -e NODE_ENV=development api node scripts/seed.js   # (tuỳ chọn) dữ liệu mẫu
+```
+
+Cơ sở dữ liệu không mở cổng ra ngoài. Chưa cấu hình `SMTP_URL` nên email không được gửi đi; đặt thêm biến này cho service `api` khi cần.
+
 ## Biến môi trường
 
 | Biến | Ý nghĩa |
