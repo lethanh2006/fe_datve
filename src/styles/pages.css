@@ -401,8 +401,15 @@
 .ticket-stub::after {
   bottom: calc(var(--notch) / -2);
 }
+.qr {
+  display: block;
+  padding: 6px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid var(--border);
+}
 .ticket-code {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
 }
@@ -662,5 +669,88 @@
   .ticket {
     box-shadow: none;
     break-inside: avoid;
+  }
+}
+
+/* ====== Soát vé ====== */
+.scan-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+}
+.scan-result {
+  border-width: 2px;
+}
+.scan-result.is-ok {
+  border-color: var(--success);
+  background: color-mix(in oklab, var(--success-soft) 55%, var(--surface));
+}
+.scan-result.is-ok h2 {
+  color: var(--success);
+}
+.scan-result.is-warn {
+  border-color: var(--warning);
+  background: color-mix(in oklab, var(--warning-soft) 55%, var(--surface));
+}
+.scan-result.is-warn h2 {
+  color: var(--warning);
+}
+.scan-result.is-bad {
+  border-color: var(--danger);
+  background: color-mix(in oklab, var(--danger-soft) 55%, var(--surface));
+}
+.scan-result.is-bad h2 {
+  color: var(--danger);
+}
+.scan-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px 20px;
+  margin: 14px 0 0;
+}
+.scan-details dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.scan-details dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+.scan-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.scan-history li {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 150px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.scan-history li:last-child {
+  border-bottom: 0;
+}
+.scan-history code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .scan-history li {
+    grid-template-columns: 1fr auto;
+  }
+  .scan-history code {
+    display: none;
   }
 }

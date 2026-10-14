@@ -7,11 +7,12 @@ import type { Booking } from '../api/types'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Countdown } from '../components/Countdown'
 import { Icon } from '../components/Icon'
+import { QrCode } from '../components/QrCode'
 import { StatusBadge } from '../components/StatusBadge'
 import { ErrorState, Spinner } from '../components/States'
 import { errorMessage } from '../lib/errors'
 import { useToast } from '../components/useToast'
-import { bookingCode, formatDate, formatDateTime, formatTimeRange, formatVnd } from '../lib/format'
+import { bookingCode, formatDate, formatDateTime, formatTime, formatTimeRange, formatVnd } from '../lib/format'
 import { categoryLabel } from '../lib/seats'
 import { uuid } from '../lib/uuid'
 import { useDocumentTitle } from '../lib/useDocumentTitle'
@@ -82,10 +83,16 @@ function Ticket({ booking }: { booking: Booking }) {
         </dl>
       </div>
       <div className="ticket-stub">
-        <span className="ticket-label">Mã đặt vé</span>
+        {booking.ticketCode && (
+          <QrCode value={booking.ticketCode} label={`Mã QR của vé ${bookingCode(booking.id)}`} size={148} />
+        )}
         <strong className="ticket-code">{bookingCode(booking.id)}</strong>
         <span className="ticket-total">{formatVnd(booking.totalAmount)}</span>
-        <span className="badge badge-success">Đã thanh toán</span>
+        {booking.checkedInAt ? (
+          <span className="badge badge-neutral">Đã soát vé · {formatTime(booking.checkedInAt)}</span>
+        ) : (
+          <span className="badge badge-success">Đã thanh toán</span>
+        )}
       </div>
     </article>
   )

@@ -21,6 +21,8 @@ const makeBooking = (over: Partial<Booking> = {}): Booking => ({
   totalAmount: 1000000,
   expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(),
   createdAt: new Date().toISOString(),
+  ticketCode: null,
+  checkedInAt: null,
   ...over,
 })
 
@@ -76,6 +78,22 @@ describe('BookingPage', () => {
     const post = calls.find((c) => c.method === 'POST')!
     expect(post.headers.get('Idempotency-Key')).toMatch(/^[A-Za-z0-9_\-:.]{8,100}$/)
     expect(post.body).toEqual({})
+  })
+
+  it('đơn đã xác nhận hiện vé điện tử kèm mã QR và trạng thái soát vé', async () => {
+    booking = makeBooking({ status: 'CONFIRMED', ticketCode: '0123456789abcdef' })
+    mockFetch({ 'GET /api/bookings/7': () => ({ body: booking }) })
+    renderBooking()
+
+    expect(await screen.findByRole('img', { name: 'Mã QR của vé DV-000007' })).toBeInTheDocument()
+    expect(screen.getByText('Đã thanh toán')).toBeInTheDocument()
+  })
+
+  it('vé đã được soát thì hiện giờ vào cửa', async () => {
+    booking = makeBooking({ status: 'CONFIRMED', ticketCode: '0123456789abcdef', checkedInAt: '2026-10-17T12:10:00.000Z' })
+    mockFetch({ 'GET /api/bookings/7': () => ({ body: booking }) })
+    renderBooking()
+    expect(await screen.findByText('Đã soát vé · 19:10')).toBeInTheDocument()
   })
 
   it('lần thanh toán thất bại xong thì thử lại bằng Idempotency-Key mới', async () => {

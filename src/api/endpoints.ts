@@ -2,6 +2,7 @@ import { request } from './client'
 import type {
   AuthResponse,
   Booking,
+  CheckInResponse,
   BookingStatus,
   EventInput,
   EventSummary,
@@ -50,6 +51,8 @@ export const api = {
   stats: () => request<Stats>('/api/admin/stats'),
   adminBookings: (query: { status?: BookingStatus; q?: string; page?: number; size?: number }) =>
     request<Page<Booking>>('/api/admin/bookings', { query }),
+  checkIn: (ticketCode: string) =>
+    request<CheckInResponse>('/api/admin/bookings/check-in', { method: 'POST', body: { ticketCode } }),
   createEvent: (input: EventInput) => request<EventSummary>('/api/admin/events', { method: 'POST', body: input }),
   updateEvent: (id: number, input: EventInput) =>
     request<EventSummary>(`/api/admin/events/${id}`, { method: 'PUT', body: input }),

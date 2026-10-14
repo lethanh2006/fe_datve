@@ -17,6 +17,9 @@ export default function AdminLayout() {
         <NavLink to="/admin/bookings">
           <Icon name="list" size={16} /> Đơn đặt vé
         </NavLink>
+        <NavLink to="/admin/check-in">
+          <Icon name="check" size={16} /> Soát vé
+        </NavLink>
       </nav>
       <Outlet />
     </div>

@@ -11,13 +11,14 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 - Sơ đồ chọn ghế theo hàng và hạng ghế, tự làm mới 8 giây/lần; ghế vừa bị người khác giữ sẽ tự bỏ khỏi lựa chọn
 - Giữ ghế 5 phút, đồng hồ đếm ngược chính xác theo giờ server (bù lệch đồng hồ máy)
 - Thanh toán với `Idempotency-Key` (thử lại sau mất mạng dùng lại cùng key nên không bị trừ tiền hai lần), huỷ đơn
-- Vé điện tử có mã đặt vé, in được; danh sách đơn của tôi theo trạng thái
+- Vé điện tử có mã QR (vẽ bằng SVG, đã kiểm chứng giải mã ra đúng mã vé) và mã đặt vé, in được; danh sách đơn của tôi theo trạng thái
 - Đăng ký, đăng nhập (JWT); tự đăng xuất khi token hết hạn
 
 **Quản trị** (tài khoản `ADMIN`)
 - Tổng quan: doanh thu, vé đã bán, biểu đồ 14 ngày, đơn theo trạng thái, sự kiện bán chạy
 - Thêm/sửa/xoá sự kiện; thêm suất diễn kèm sinh ghế theo khu (`A-D`, số ghế/hàng, giá); thêm ghế; xoá suất
 - Danh sách mọi đơn kèm thông tin khách, lọc theo trạng thái và khách hàng
+- Soát vé: nhập hoặc quét mã QR bằng máy quét (gõ phím + Enter), báo cho vào / vé đã quét / mã sai, lưu lịch sử lượt quét
 - Giờ suất diễn luôn nhập/hiển thị theo múi giờ của sự kiện (mặc định `Asia/Ho_Chi_Minh`), không phụ thuộc múi giờ máy
 
 ## Chạy

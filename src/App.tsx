@@ -17,6 +17,7 @@ const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
 const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsPage'))
 const AdminEventPage = lazy(() => import('./pages/admin/AdminEventPage'))
 const AdminBookingsPage = lazy(() => import('./pages/admin/AdminBookingsPage'))
+const CheckInPage = lazy(() => import('./pages/admin/CheckInPage'))
 
 export default function App() {
   return (
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="events" element={<AdminEventsPage />} />
             <Route path="events/:id" element={<AdminEventPage />} />
             <Route path="bookings" element={<AdminBookingsPage />} />
+            <Route path="check-in" element={<CheckInPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>

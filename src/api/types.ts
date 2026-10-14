@@ -79,6 +79,10 @@ export interface Booking {
   totalAmount: number
   expiresAt: string | null
   createdAt: string
+  /** Mã vé (nội dung QR), chỉ có khi đơn đã xác nhận */
+  ticketCode: string | null
+  /** Thời điểm soát vé tại cửa, null nếu chưa vào */
+  checkedInAt: string | null
   customer?: { id: number; email: string; fullName: string }
 }
 
@@ -126,4 +130,10 @@ export interface ShowtimeInput {
   startTime: string
   endTime: string
   sections?: SeatSectionInput[]
+}
+
+export interface CheckInResponse {
+  /** CHECKED_IN: vào cửa lần đầu; ALREADY_CHECKED_IN: vé đã được quét trước đó */
+  result: 'CHECKED_IN' | 'ALREADY_CHECKED_IN'
+  booking: Booking
 }
