@@ -9,6 +9,7 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 - Danh sách sự kiện: tìm kiếm, lọc thể loại, phân trang (trạng thái nằm trên URL nên Back/Forward và chia sẻ link đều đúng)
 - Chi tiết sự kiện và các suất diễn kèm số ghế còn lại, giá thấp nhất
 - Sơ đồ chọn ghế theo hàng và hạng ghế, **cập nhật tức thì** qua Server-Sent Events (người khác giữ/huỷ/mua ghế thì sơ đồ đổi sau chưa đầy 1 giây, không cần tải lại); mất luồng thì tự quay về làm mới 8 giây/lần. Ghế đang chọn mà bị người khác lấy sẽ tự bỏ khỏi lựa chọn
+- **Chọn nhanh**: chọn số ghế (và hạng) rồi hệ thống tự chọn dãy ghế liền nhau đẹp nhất còn trống (gần sân khấu, giữa hàng, không bị lối đi chia cắt; hết dãy liền thì chọn các ghế gần nhau nhất)
 - Giữ ghế 5 phút, đồng hồ đếm ngược chính xác theo giờ server (bù lệch đồng hồ máy)
 - Thanh toán với `Idempotency-Key` (thử lại sau mất mạng dùng lại cùng key nên không bị trừ tiền hai lần), huỷ đơn
 - Vé điện tử có mã QR (vẽ bằng SVG, đã kiểm chứng giải mã ra đúng mã vé) và mã đặt vé, in được; danh sách đơn của tôi theo trạng thái

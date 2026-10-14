@@ -424,3 +424,23 @@ a.event-card:hover {
   background: var(--seat-booked);
   border-color: var(--seat-booked);
 }
+
+/* ====== Chọn nhanh ghế ====== */
+.quickpick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.quickpick .select {
+  min-height: 40px;
+  min-width: 96px;
+}
+.quickpick .btn {
+  min-height: 40px;
+}

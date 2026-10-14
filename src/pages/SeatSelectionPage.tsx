@@ -6,6 +6,7 @@ import { api } from '../api/endpoints'
 import type { Seat } from '../api/types'
 import { useAuth } from '../auth/useAuth'
 import { Icon } from '../components/Icon'
+import { QuickPick } from '../components/QuickPick'
 import { SeatLegend, SeatMap } from '../components/SeatMap'
 import { ErrorState, Spinner } from '../components/States'
 import { errorMessage } from '../lib/errors'
@@ -148,6 +149,22 @@ export function SeatSelectionPage() {
             </p>
           ) : (
             <>
+              <QuickPick
+                seats={seats.data}
+                maxSeats={MAX_SEATS}
+                disabled={closed || book.isPending}
+                onPick={(result, wanted, category) => {
+                  if (!result) {
+                    toast.show(
+                      `Không còn đủ ${wanted} ghế trống${category ? ` ở hạng ${categoryLabel(category)}` : ''}`,
+                      'error',
+                    )
+                    return
+                  }
+                  setSelected(new Set(result.seats.map((s) => s.id)))
+                  if (!result.contiguous) toast.show(`Không còn ${wanted} ghế liền nhau, đã chọn các ghế gần nhau nhất`)
+                }}
+              />
               <SeatMap seats={seats.data} selectedIds={selected} onToggle={toggle} disabled={closed || book.isPending} />
               <SeatLegend seats={seats.data} />
             </>

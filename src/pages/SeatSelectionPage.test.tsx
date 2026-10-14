@@ -84,6 +84,32 @@ describe('SeatSelectionPage', () => {
     expect(calls.filter((c) => c.path === '/api/showtimes/3/seats').length).toBeGreaterThan(before)
   })
 
+  it('chọn nhanh: chọn dãy ghế liền nhau đẹp nhất và thay thế lựa chọn cũ', async () => {
+    mockFetch(baseRoutes(() => makeSeats(12)))
+    render()
+    await userEvent.click(await seatButton('A12'))
+    await userEvent.selectOptions(screen.getByLabelText('Số ghế'), '3')
+    await userEvent.click(screen.getByRole('button', { name: 'Chọn nhanh' }))
+
+    const list = screen.getByRole('list', { name: 'Ghế đã chọn' })
+    expect(list).not.toHaveTextContent('A12')
+    // hàng 12 ghế có lối đi sau ghế 6; dãy 3 ghế đẹp nhất nằm trọn một bên, gần giữa
+    expect(list).toHaveTextContent('A4')
+    expect(list).toHaveTextContent('A5')
+    expect(list).toHaveTextContent('A6')
+    expect(screen.getByText(/Tạm tính \(3\/10 ghế\)/)).toBeInTheDocument()
+  })
+
+  it('chọn nhanh: báo khi không còn đủ ghế', async () => {
+    const seats = makeSeats(3).map((s, i) => (i === 0 ? s : { ...s, status: 'BOOKED' as const }))
+    mockFetch(baseRoutes(() => seats))
+    render()
+    await seatButton('A1')
+    await userEvent.selectOptions(screen.getByLabelText('Số ghế'), '2')
+    await userEvent.click(screen.getByRole('button', { name: 'Chọn nhanh' }))
+    expect(await screen.findByText('Không còn đủ 2 ghế trống')).toBeInTheDocument()
+  })
+
   it('không cho chọn quá 10 ghế', async () => {
     mockFetch(baseRoutes(() => makeSeats(12)))
     render()
