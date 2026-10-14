@@ -40,6 +40,15 @@ npm run dev              # http://localhost:5173, tự chuyển tiếp /api sang
 
 Tài khoản mẫu khi backend chạy `npm run seed`: `admin@datve.local / Admin@12345`, `user@datve.local / User@12345`.
 
+## Docker
+
+```bash
+docker build -t datve-web .
+docker run -p 8081:80 -e BACKEND_URL=http://host.docker.internal:8080 datve-web   # http://localhost:8081
+```
+
+Image gồm nginx phục vụ bản build, trả `index.html` cho mọi đường dẫn SPA, chuyển tiếp `/api/` sang `BACKEND_URL`, cache vô thời hạn cho `/assets/`, kèm header bảo mật và CSP (script chỉ từ chính site). Nếu FE và API ở hai domain khác nhau, build với `--build-arg VITE_API_BASE_URL=https://api.example.com` và đặt `CORS_ORIGINS` ở backend.
+
 ## Biến môi trường
 
 | Biến | Ý nghĩa |
