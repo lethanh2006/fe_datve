@@ -9,6 +9,7 @@ import { ToastProvider } from './components/ToastProvider.tsx'
 import './styles/index.css'
 import './styles/components.css'
 import './styles/pages.css'
+import './styles/experience.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

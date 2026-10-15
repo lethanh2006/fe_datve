@@ -14,6 +14,8 @@ const showtime = {
   totalSeats: 12,
   availableSeats: 12,
   minPrice: 100000,
+  cancelledAt: null,
+  cancelReason: null,
 }
 const event = {
   id: 1,
@@ -129,7 +131,9 @@ describe('SeatSelectionPage', () => {
   })
 
   describe('đã đăng nhập', () => {
-    const loggedIn = { 'GET /api/auth/me': () => ({ body: { id: 1, email: 'a@test.com', fullName: 'A', role: 'USER' } }) }
+    const loggedIn = {
+      'GET /api/auth/me': () => ({ body: { id: 1, email: 'a@test.com', fullName: 'A', role: 'USER' } }),
+    }
 
     it('giữ ghế gửi đúng danh sách ghế rồi chuyển tới trang đơn', async () => {
       localStorage.setItem('datve.token', 'tok')

@@ -10,6 +10,9 @@ export function EventCard({ event }: { event: EventSummary }) {
       <div className="event-card-media">
         <Poster id={event.id} name={event.name} src={event.imageUrl} />
         {event.category && <span className="event-card-tag">{event.category}</span>}
+        <span className="event-card-open" aria-hidden="true">
+          <Icon name="arrowUpRight" size={20} />
+        </span>
       </div>
       <div className="event-card-body">
         <h3 className="event-card-title">{event.name}</h3>
@@ -21,15 +24,20 @@ export function EventCard({ event }: { event: EventSummary }) {
           <Icon name="calendar" size={15} />
           <span>{event.nextShowtime ? formatDateTime(event.nextShowtime) : 'Chưa có suất diễn'}</span>
         </p>
-        <p className="event-card-price">
-          {event.minPrice !== null ? (
-            <>
-              Từ <strong>{formatVnd(event.minPrice)}</strong>
-            </>
-          ) : (
-            <span className="muted">Sắp mở bán</span>
-          )}
-        </p>
+        <div className="event-card-bottom">
+          <p className="event-card-price">
+            {event.minPrice !== null ? (
+              <>
+                Từ <strong>{formatVnd(event.minPrice)}</strong>
+              </>
+            ) : (
+              <span className="muted">Sắp mở bán</span>
+            )}
+          </p>
+          <span className="event-card-action">
+            Khám phá <Icon name="arrowRight" size={16} />
+          </span>
+        </div>
       </div>
     </Link>
   )

@@ -21,6 +21,7 @@ function BookingItem({ booking }: { booking: Booking }) {
           <div className="row row-wrap">
             <strong className="booking-item-code">{bookingCode(booking.id)}</strong>
             <StatusBadge status={booking.status} />
+            {booking.showtimeCancelledAt && <span className="badge badge-danger">Suất diễn đã huỷ</span>}
             {booking.refundedAt && <span className="badge badge-success">Đã hoàn tiền</span>}
             {booking.status === 'PENDING' && booking.expiresAt && <Countdown expiresAt={booking.expiresAt} />}
           </div>

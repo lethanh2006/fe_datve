@@ -211,7 +211,31 @@ export function BookingPage() {
         {b.refundedAt && <span className="badge badge-success">Đã hoàn tiền</span>}
       </header>
 
-      {b.status === 'CONFIRMED' && (
+      {b.showtimeCancelledAt && (
+        <p className="alert alert-danger" role="status">
+          Suất diễn đã bị huỷ{b.showtimeCancelReason ? `: ${b.showtimeCancelReason}` : ''}.{' '}
+          {b.refundedAt
+            ? `Bạn đã được hoàn ${formatVnd(b.totalAmount)}.`
+            : b.checkedInAt
+              ? 'Vé đã được soát trước khi huỷ suất. Vui lòng liên hệ ban tổ chức để được hỗ trợ.'
+              : b.status === 'CONFIRMED'
+                ? 'Tiền vé sẽ được hoàn tự động, bạn không cần làm gì thêm. Vé này không còn hiệu lực vào cửa.'
+                : ''}
+        </p>
+      )}
+
+      {b.status === 'CONFIRMED' && b.showtimeCancelledAt && (
+        <div className="row row-wrap no-print">
+          <Link to={`/events/${b.eventId}`} className="btn btn-primary">
+            Xem các suất khác của sự kiện
+          </Link>
+          <Link to="/bookings" className="btn btn-ghost">
+            Xem tất cả vé
+          </Link>
+        </div>
+      )}
+
+      {b.status === 'CONFIRMED' && !b.showtimeCancelledAt && (
         <div className="stack">
           <p className="alert alert-success" role="status">
             Đặt vé thành công! Hãy xuất trình mã đặt vé khi vào cửa.
@@ -269,7 +293,7 @@ export function BookingPage() {
           </section>
 
           <aside className="card card-pad stack checkout" aria-label="Thanh toán">
-            {b.status === 'PENDING' && b.expiresAt && (
+            {b.status === 'PENDING' && b.expiresAt && !b.showtimeCancelledAt && (
               <>
                 <div className="checkout-timer">
                   <span className="muted">Ghế được giữ cho bạn trong</span>
@@ -319,13 +343,21 @@ export function BookingPage() {
                 <p className={`alert ${b.status === 'EXPIRED' ? 'alert-danger' : 'alert-warning'}`}>
                   {b.status === 'EXPIRED'
                     ? 'Đơn đã hết thời gian giữ ghế. Ghế đã được trả lại cho người khác.'
-                    : b.refundedAt
-                      ? `Đã hoàn ${formatVnd(b.totalAmount)} lúc ${formatDateTime(b.refundedAt)}. Vé đã huỷ và không còn hiệu lực vào cửa.`
-                      : 'Đơn đã được huỷ, ghế đã được trả lại.'}
+                    : b.showtimeCancelledAt
+                      ? 'Đơn đã được huỷ do suất diễn bị huỷ.'
+                      : b.refundedAt
+                        ? `Đã hoàn ${formatVnd(b.totalAmount)} lúc ${formatDateTime(b.refundedAt)}. Vé đã huỷ và không còn hiệu lực vào cửa.`
+                        : 'Đơn đã được huỷ, ghế đã được trả lại.'}
                 </p>
-                <Link to={`/showtimes/${b.showtimeId}`} className="btn btn-primary btn-block">
-                  Chọn ghế lại
-                </Link>
+                {b.showtimeCancelledAt ? (
+                  <Link to={`/events/${b.eventId}`} className="btn btn-primary btn-block">
+                    Xem các suất khác
+                  </Link>
+                ) : (
+                  <Link to={`/showtimes/${b.showtimeId}`} className="btn btn-primary btn-block">
+                    Chọn ghế lại
+                  </Link>
+                )}
               </div>
             )}
           </aside>

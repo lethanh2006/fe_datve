@@ -48,6 +48,9 @@ export interface Showtime {
   totalSeats: number
   availableSeats: number
   minPrice: number | null
+  /** Thời điểm suất diễn bị huỷ, null nếu vẫn diễn ra */
+  cancelledAt: string | null
+  cancelReason: string | null
 }
 
 export interface Seat {
@@ -85,6 +88,9 @@ export interface Booking {
   checkedInAt: string | null
   refundableUntil: string | null
   refundedAt: string | null
+  /** Suất diễn bị huỷ thì đơn được hoàn tiền tự động */
+  showtimeCancelledAt: string | null
+  showtimeCancelReason: string | null
   customer?: { id: number; email: string; fullName: string }
 }
 
@@ -164,4 +170,18 @@ export interface AdminEmail {
   lastError: string | null
   createdAt: string
   sentAt: string | null
+}
+
+export interface CancellationStatus {
+  showtimeId: number
+  cancelledAt: string
+  reason: string | null
+  /** Đơn đã thanh toán, chưa soát vé và chưa được hoàn tiền */
+  pendingRefunds: number
+  refunded: number
+  /** Đơn đã soát vé trước khi huỷ nên không tự hoàn */
+  checkedIn: number
+  /** Đơn đang thanh toán dở; xong thì sẽ tự được hoàn */
+  paymentsInProgress: number
+  failures: { bookingId: number; attempts: number; error: string }[]
 }

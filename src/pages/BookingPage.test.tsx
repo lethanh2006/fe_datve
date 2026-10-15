@@ -25,6 +25,8 @@ const makeBooking = (over: Partial<Booking> = {}): Booking => ({
   checkedInAt: null,
   refundableUntil: null,
   refundedAt: null,
+  showtimeCancelledAt: null,
+  showtimeCancelReason: null,
   ...over,
 })
 
@@ -101,6 +103,33 @@ describe('BookingPage', () => {
     renderBooking()
     expect(await screen.findByText('Đã soát vé · 19:10')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Huỷ vé và hoàn tiền' })).not.toBeInTheDocument()
+  })
+
+  it('suất đã huỷ ẩn QR và thông báo đang hoàn tiền', async () => {
+    booking = makeBooking({
+      status: 'CONFIRMED',
+      ticketCode: '0123456789abcdef',
+      showtimeCancelledAt: new Date().toISOString(),
+      showtimeCancelReason: 'Nghệ sĩ bị ốm',
+    })
+    mockFetch({ 'GET /api/bookings/7': () => ({ body: booking }) })
+    renderBooking()
+    expect(await screen.findByText(/Tiền vé sẽ được hoàn tự động/)).toHaveTextContent('Nghệ sĩ bị ốm')
+    expect(screen.queryByRole('img', { name: /Mã QR/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'In vé' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Xem các suất khác của sự kiện' })).toHaveAttribute('href', '/events/1')
+  })
+
+  it('vé đã soát của suất bị huỷ hướng dẫn liên hệ, không hứa hoàn tự động', async () => {
+    booking = makeBooking({
+      status: 'CONFIRMED',
+      checkedInAt: new Date().toISOString(),
+      showtimeCancelledAt: new Date().toISOString(),
+    })
+    mockFetch({ 'GET /api/bookings/7': () => ({ body: booking }) })
+    renderBooking()
+    expect(await screen.findByText(/Vé đã được soát trước khi huỷ suất/)).toBeInTheDocument()
+    expect(screen.queryByText(/Tiền vé sẽ được hoàn tự động/)).not.toBeInTheDocument()
   })
 
   it('hoàn vé cần xác nhận; thành công xoá QR và hiện số tiền đã hoàn', async () => {

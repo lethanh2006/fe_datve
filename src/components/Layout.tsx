@@ -59,6 +59,7 @@ export function Layout() {
                 <button
                   type="button"
                   className="btn btn-ghost btn-sm"
+                  aria-label="Đăng xuất"
                   onClick={() => {
                     logout()
                     navigate('/')
@@ -87,9 +88,39 @@ export function Layout() {
       </main>
 
       <footer className="site-footer">
-        <div className="container">
+        <div className="container footer-main">
+          <div className="footer-brand">
+            <Link to="/" className="brand">
+              <Logo />
+              <span>
+                Đặt<b>Vé</b>
+              </span>
+            </Link>
+            <p>
+              Đặt một chiếc vé.
+              <br />
+              Mang về một kỷ niệm.
+            </p>
+          </div>
+          <nav className="footer-links" aria-label="Liên kết cuối trang">
+            <span className="eyebrow">KHÁM PHÁ ĐẶTVÉ</span>
+            <Link to="/">Sự kiện</Link>
+            <Link to="/bookings">Vé của tôi</Link>
+            <Link to="/account">Tài khoản</Link>
+          </nav>
+          <div className="footer-note">
+            <Icon name="ticket" size={28} />
+            <p>
+              Trải nghiệm bắt đầu
+              <br />
+              từ một chỗ ngồi.
+            </p>
+            <span className="muted">Chọn suất · Chọn ghế · Nhận vé</span>
+          </div>
+        </div>
+        <div className="container footer-bottom">
           <span>© {YEAR} ĐặtVé</span>
-          <span className="muted">Giữ ghế 5 phút · Thanh toán an toàn</span>
+          <span className="muted">Dành thời gian cho điều bạn yêu thích.</span>
         </div>
       </footer>
     </div>

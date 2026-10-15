@@ -7,6 +7,7 @@ import type {
   CheckInResponse,
   EmailStatus,
   BookingStatus,
+  CancellationStatus,
   EventInput,
   EventSummary,
   Page,
@@ -82,5 +83,8 @@ export const api = {
     request<Showtime>(`/api/admin/events/${eventId}/showtimes`, { method: 'POST', body: input }),
   addSeats: (showtimeId: number, sections: SeatSectionInput[]) =>
     request<Showtime>(`/api/admin/showtimes/${showtimeId}/seats`, { method: 'POST', body: { sections } }),
+  cancelShowtime: (id: number, reason: string) =>
+    request<CancellationStatus>(`/api/admin/showtimes/${id}/cancel`, { method: 'POST', body: { reason } }),
+  cancellationStatus: (id: number) => request<CancellationStatus>(`/api/admin/showtimes/${id}/cancellation`),
   deleteShowtime: (id: number) => request<void>(`/api/admin/showtimes/${id}`, { method: 'DELETE' }),
 }

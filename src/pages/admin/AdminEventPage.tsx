@@ -11,8 +11,10 @@ import { errorMessage } from '../../lib/errors'
 import { useToast } from '../../components/useToast'
 import { formatDateTime, formatVnd, zonedInputToIso } from '../../lib/format'
 import { useDocumentTitle } from '../../lib/useDocumentTitle'
+import { useNow } from '../../lib/useNow'
 import { EventForm } from './EventForm'
 import { SectionsEditor } from './SectionsEditor'
+import { CancelShowtimeForm, CancellationProgress } from './ShowtimeCancellation'
 import { newSection, parseSections, type SectionDraft } from './sections'
 
 /** Form thêm suất diễn: giờ nhập theo múi giờ của sự kiện, kèm khu ghế để sinh ghế luôn. */
@@ -62,11 +64,25 @@ function ShowtimeForm({ eventId, onDone, onCancel }: { eventId: number; onDone: 
       <div className="form-grid">
         <div className="field">
           <label htmlFor="st-start">Bắt đầu</label>
-          <input id="st-start" className="input" type="datetime-local" required value={start} onChange={(e) => setStart(e.target.value)} />
+          <input
+            id="st-start"
+            className="input"
+            type="datetime-local"
+            required
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+          />
         </div>
         <div className="field">
           <label htmlFor="st-end">Kết thúc</label>
-          <input id="st-end" className="input" type="datetime-local" required value={end} onChange={(e) => setEnd(e.target.value)} />
+          <input
+            id="st-end"
+            className="input"
+            type="datetime-local"
+            required
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+          />
         </div>
       </div>
       <label className="check">
@@ -94,7 +110,15 @@ function ShowtimeForm({ eventId, onDone, onCancel }: { eventId: number; onDone: 
   )
 }
 
-function AddSeatsForm({ showtime, onDone, onCancel }: { showtime: Showtime; onDone: () => void; onCancel: () => void }) {
+function AddSeatsForm({
+  showtime,
+  onDone,
+  onCancel,
+}: {
+  showtime: Showtime
+  onDone: () => void
+  onCancel: () => void
+}) {
   const queryClient = useQueryClient()
   const toast = useToast()
   const [sections, setSections] = useState<SectionDraft[]>([newSection(1, { rows: '', faceValue: '300000' })])
@@ -127,7 +151,8 @@ function AddSeatsForm({ showtime, onDone, onCancel }: { showtime: Showtime; onDo
         </p>
       )}
       <p className="muted">
-        Suất hiện có {showtime.totalSeats} ghế. Mã ghế mới không được trùng mã đã có (ví dụ hàng A đã tồn tại thì dùng hàng khác).
+        Suất hiện có {showtime.totalSeats} ghế. Mã ghế mới không được trùng mã đã có (ví dụ hàng A đã tồn tại thì dùng
+        hàng khác).
       </p>
       <SectionsEditor value={sections} onChange={setSections} idPrefix="add" />
       <p className={parsed.error ? 'field-error' : 'muted'} role="status">
@@ -147,17 +172,23 @@ function AddSeatsForm({ showtime, onDone, onCancel }: { showtime: Showtime; onDo
 }
 
 export default function AdminEventPage() {
+  const now = useNow()
   const id = Number(useParams().id)
   const queryClient = useQueryClient()
   const toast = useToast()
   const event = useQuery({ queryKey: ['event', id], queryFn: () => api.event(id), enabled: Number.isFinite(id) })
-  const showtimes = useQuery({ queryKey: ['showtimes', id], queryFn: () => api.showtimes(id), enabled: Number.isFinite(id) })
+  const showtimes = useQuery({
+    queryKey: ['showtimes', id],
+    queryFn: () => api.showtimes(id),
+    enabled: Number.isFinite(id),
+  })
   useDocumentTitle(event.data ? `Quản trị · ${event.data.name}` : 'Quản trị')
 
   const [editing, setEditing] = useState(false)
   const [addingShowtime, setAddingShowtime] = useState(false)
   const [addSeatsFor, setAddSeatsFor] = useState<Showtime | null>(null)
   const [deleting, setDeleting] = useState<Showtime | null>(null)
+  const [cancelling, setCancelling] = useState<Showtime | null>(null)
 
   const removeShowtime = useMutation({
     mutationFn: (s: Showtime) => api.deleteShowtime(s.id),
@@ -228,12 +259,16 @@ export default function AdminEventPage() {
                   <th className="num">Giá từ</th>
                   <th>
                     <span className="sr-only">Thao tác</span>
-                  </th>                </tr>
+                  </th>
+                </tr>
               </thead>
               <tbody>
                 {showtimes.data.map((s) => (
                   <tr key={s.id}>
-                    <td>{formatDateTime(s.startTime)}</td>
+                    <td>
+                      {formatDateTime(s.startTime)}
+                      {s.cancelledAt && <CancellationProgress showtime={s} />}
+                    </td>
                     <td className="num">
                       {s.availableSeats} / {s.totalSeats}
                     </td>
@@ -242,17 +277,26 @@ export default function AdminEventPage() {
                       <Link to={`/showtimes/${s.id}`} className="btn btn-ghost btn-sm">
                         Sơ đồ ghế
                       </Link>
-                      <button type="button" className="btn btn-outline btn-sm" onClick={() => setAddSeatsFor(s)}>
-                        Thêm ghế
-                      </button>{' '}
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => setDeleting(s)}
-                        aria-label={`Xoá suất ${formatDateTime(s.startTime)}`}
-                      >
-                        <Icon name="trash" size={16} />
-                      </button>
+                      {!s.cancelledAt && (
+                        <>
+                          <button type="button" className="btn btn-outline btn-sm" onClick={() => setAddSeatsFor(s)}>
+                            Thêm ghế
+                          </button>{' '}
+                          {new Date(s.endTime).getTime() > now && (
+                            <button type="button" className="btn btn-danger btn-sm" onClick={() => setCancelling(s)}>
+                              Huỷ suất
+                            </button>
+                          )}{' '}
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => setDeleting(s)}
+                            aria-label={`Xoá suất ${formatDateTime(s.startTime)}`}
+                          >
+                            <Icon name="trash" size={16} />
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -266,10 +310,39 @@ export default function AdminEventPage() {
         <EventForm formId="edit-event" event={e} onCancel={() => setEditing(false)} onDone={() => setEditing(false)} />
       </Modal>
       <Modal open={addingShowtime} title="Thêm suất diễn" onClose={() => setAddingShowtime(false)} width={760}>
-        <ShowtimeForm eventId={e.id} onCancel={() => setAddingShowtime(false)} onDone={() => setAddingShowtime(false)} />
+        <ShowtimeForm
+          eventId={e.id}
+          onCancel={() => setAddingShowtime(false)}
+          onDone={() => setAddingShowtime(false)}
+        />
       </Modal>
-      <Modal open={addSeatsFor !== null} title="Thêm ghế cho suất diễn" onClose={() => setAddSeatsFor(null)} width={760}>
-        {addSeatsFor && <AddSeatsForm showtime={addSeatsFor} onCancel={() => setAddSeatsFor(null)} onDone={() => setAddSeatsFor(null)} />}
+      <Modal
+        open={addSeatsFor !== null}
+        title="Thêm ghế cho suất diễn"
+        onClose={() => setAddSeatsFor(null)}
+        width={760}
+      >
+        {addSeatsFor && (
+          <AddSeatsForm
+            showtime={addSeatsFor}
+            onCancel={() => setAddSeatsFor(null)}
+            onDone={() => setAddSeatsFor(null)}
+          />
+        )}
+      </Modal>
+      <Modal
+        open={cancelling !== null}
+        title={`Huỷ suất diễn ${cancelling ? formatDateTime(cancelling.startTime) : ''}`}
+        onClose={() => setCancelling(null)}
+        width={620}
+      >
+        {cancelling && (
+          <CancelShowtimeForm
+            showtime={cancelling}
+            onCancel={() => setCancelling(null)}
+            onDone={() => setCancelling(null)}
+          />
+        )}
       </Modal>
       <ConfirmDialog
         open={deleting !== null}
@@ -281,8 +354,8 @@ export default function AdminEventPage() {
         onCancel={() => setDeleting(null)}
       >
         <p>
-          Xoá suất diễn lúc <strong>{deleting && formatDateTime(deleting.startTime)}</strong> cùng toàn bộ ghế? Chỉ xoá được khi chưa có
-          ai đặt vé.
+          Xoá suất diễn lúc <strong>{deleting && formatDateTime(deleting.startTime)}</strong> cùng toàn bộ ghế? Chỉ xoá
+          được khi chưa có ai đặt vé.
         </p>
       </ConfirmDialog>
     </div>

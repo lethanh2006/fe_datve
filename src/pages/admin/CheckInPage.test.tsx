@@ -25,6 +25,8 @@ const booking = (over: Partial<Booking> = {}): Booking => ({
   checkedInAt: null,
   refundableUntil: null,
   refundedAt: null,
+  showtimeCancelledAt: null,
+  showtimeCancelReason: null,
   customer: { id: 2, email: 'khach@test.com', fullName: 'Nguyễn Văn Khách' },
   ...over,
 })
@@ -125,7 +127,10 @@ describe('CheckInPage', () => {
     let result: 'CHECKED_IN' | 'ALREADY_CHECKED_IN' = 'CHECKED_IN'
     mockFetch({
       'POST /api/admin/bookings/check-in': () => ({
-        body: { result, booking: booking({ checkedInAt: result === 'ALREADY_CHECKED_IN' ? '2026-10-17T12:10:00.000Z' : null }) },
+        body: {
+          result,
+          booking: booking({ checkedInAt: result === 'ALREADY_CHECKED_IN' ? '2026-10-17T12:10:00.000Z' : null }),
+        },
       }),
     })
     renderPage()

@@ -322,6 +322,7 @@ a.event-card:hover {
 
 .seat {
   --cat: var(--cat-1);
+  position: relative;
   width: var(--seat);
   height: var(--seat);
   padding: 0;

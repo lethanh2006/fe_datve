@@ -32,7 +32,13 @@ export function SeatSelectionPage() {
   const toast = useToast()
   const now = useNow()
 
-  const showtime = useQuery({ queryKey: ['showtime', id], queryFn: () => api.showtime(id), enabled: valid })
+  const showtime = useQuery({
+    queryKey: ['showtime', id],
+    queryFn: () => api.showtime(id),
+    enabled: valid,
+    // Huỷ suất không nhất thiết làm thay đổi ghế (ví dụ chưa có đơn), nên cần kiểm tra cả trạng thái suất.
+    refetchInterval: (query) => (query.state.data?.cancelledAt ? false : POLL_REFRESH_MS),
+  })
   const eventId = showtime.data?.eventId
   const event = useQuery({
     queryKey: ['event', eventId],
@@ -96,7 +102,10 @@ export function SeatSelectionPage() {
     },
     onError: (error) => {
       toast.show(errorMessage(error), 'error')
-      if (error instanceof ApiError && (error.code === 'SEAT_UNAVAILABLE' || error.code === 'SHOWTIME_CLOSED')) {
+      if (
+        error instanceof ApiError &&
+        ['SEAT_UNAVAILABLE', 'SHOWTIME_CLOSED', 'SHOWTIME_CANCELLED'].includes(error.code)
+      ) {
         void seats.refetch()
         void showtime.refetch()
       }
@@ -111,7 +120,8 @@ export function SeatSelectionPage() {
   const st = showtime.data
   const selectedSeats = [...selected].map((sid) => seatById.get(sid)).filter((s): s is Seat => s !== undefined)
   const total = selectedSeats.reduce((sum, s) => sum + s.faceValue, 0)
-  const closed = new Date(st.startTime).getTime() <= now
+  const cancelled = Boolean(st.cancelledAt)
+  const closed = cancelled || new Date(st.startTime).getTime() <= now
   const available = seats.data.filter((s) => s.status === 'AVAILABLE').length
 
   const submit = () => {
@@ -142,7 +152,13 @@ export function SeatSelectionPage() {
               Còn {available}/{seats.data.length} ghế
             </span>
           </div>
-          {closed && <p className="alert alert-warning">Suất diễn đã bắt đầu, không thể đặt thêm vé.</p>}
+          {cancelled ? (
+            <p className="alert alert-danger" role="status">
+              Suất diễn đã bị huỷ{st.cancelReason ? `: ${st.cancelReason}` : ''}. Không thể đặt thêm vé.
+            </p>
+          ) : (
+            closed && <p className="alert alert-warning">Suất diễn đã bắt đầu, không thể đặt thêm vé.</p>
+          )}
           {seats.data.length === 0 ? (
             <p className="muted" style={{ padding: 24, textAlign: 'center' }}>
               Suất diễn này chưa có ghế.
@@ -165,7 +181,12 @@ export function SeatSelectionPage() {
                   if (!result.contiguous) toast.show(`Không còn ${wanted} ghế liền nhau, đã chọn các ghế gần nhau nhất`)
                 }}
               />
-              <SeatMap seats={seats.data} selectedIds={selected} onToggle={toggle} disabled={closed || book.isPending} />
+              <SeatMap
+                seats={seats.data}
+                selectedIds={selected}
+                onToggle={toggle}
+                disabled={closed || book.isPending}
+              />
               <SeatLegend seats={seats.data} />
             </>
           )}
@@ -177,7 +198,8 @@ export function SeatSelectionPage() {
             <strong>{event.data?.name ?? '…'}</strong>
             <span className="muted">{event.data?.venue}</span>
             <span className="muted">
-              <Icon name="calendar" size={14} /> {formatDate(st.startTime)} · {formatTimeRange(st.startTime, st.endTime)}
+              <Icon name="calendar" size={14} /> {formatDate(st.startTime)} ·{' '}
+              {formatTimeRange(st.startTime, st.endTime)}
             </span>
           </div>
 

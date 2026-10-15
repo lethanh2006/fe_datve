@@ -16,7 +16,8 @@ function ShowtimeRow({ showtime, now }: { showtime: Showtime; now: number }) {
   const percent = showtime.totalSeats > 0 ? Math.round((showtime.availableSeats / showtime.totalSeats) * 100) : 0
 
   let action: { label: string; disabled: boolean }
-  if (started) action = { label: 'Đã bắt đầu', disabled: true }
+  if (showtime.cancelledAt) action = { label: 'Đã huỷ', disabled: true }
+  else if (started) action = { label: 'Đã bắt đầu', disabled: true }
   else if (noSeats) action = { label: 'Chưa mở bán', disabled: true }
   else if (soldOut) action = { label: 'Hết vé', disabled: true }
   else action = { label: 'Chọn ghế', disabled: false }
@@ -31,7 +32,12 @@ function ShowtimeRow({ showtime, now }: { showtime: Showtime; now: number }) {
         </div>
       </div>
       <div className="showtime-seats">
-        {noSeats ? (
+        {showtime.cancelledAt ? (
+          <>
+            <span className="badge badge-danger">Suất diễn đã huỷ</span>
+            {showtime.cancelReason && <span className="muted">{showtime.cancelReason}</span>}
+          </>
+        ) : noSeats ? (
           <span className="muted">Chưa có ghế</span>
         ) : (
           <>
@@ -49,7 +55,7 @@ function ShowtimeRow({ showtime, now }: { showtime: Showtime; now: number }) {
         )}
       </div>
       <div className="showtime-price">
-        {showtime.minPrice !== null && (
+        {showtime.minPrice !== null && !showtime.cancelledAt && (
           <>
             <span className="muted">Từ</span>
             <strong>{formatVnd(showtime.minPrice)}</strong>
@@ -118,12 +124,18 @@ export function EventPage() {
             </p>
           )}
           {e.description && <p className="event-hero-desc">{e.description}</p>}
+          <a className="btn btn-primary event-hero-cta" href="#showtimes-title">
+            Xem lịch & chọn ghế <Icon name="arrowRight" />
+          </a>
         </div>
       </section>
 
       <section aria-labelledby="showtimes-title" style={{ marginTop: 32 }}>
         <div className="section-head">
-          <h2 id="showtimes-title">Chọn suất diễn</h2>
+          <div>
+            <span className="eyebrow">CHỌN MỘT LỊCH HẸN</span>
+            <h2 id="showtimes-title">Chọn suất diễn</h2>
+          </div>
         </div>
         {showtimes.isPending ? (
           <Spinner />

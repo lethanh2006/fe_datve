@@ -3,6 +3,8 @@
 Giao diện đặt vé sự kiện cho backend NestJS ([BE_datve](https://github.com/lethanh2006/BE_datve)).
 React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ trợ chế độ tối theo hệ điều hành.
 
+Giao diện gồm banner sân khấu, tìm kiếm nổi, bộ lọc thể loại, thẻ sự kiện và hướng dẫn đặt vé; bố cục dùng được từ màn hình điện thoại đến desktop. Các trang sự kiện, tài khoản, vé và quản trị dùng chung màu sắc, kiểu chữ và khoảng cách. Ảnh banner WebP 112 KB nằm trong repo, không phụ thuộc dịch vụ ảnh bên ngoài; xem [nguồn ảnh và prompt](docs/visual-assets.md).
+
 ## Tính năng
 
 **Khách**
@@ -17,6 +19,7 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 - Trang `/account`: sửa họ tên, đổi mật khẩu và giữ phiên hiện tại bằng token mới
 - Quên/đặt lại mật khẩu qua email (`/forgot-password`, `/reset-password?token=...`), kiểm tra xác nhận mật khẩu và giới hạn UTF-8
 - Hoàn vé đã thanh toán trong thời hạn do backend trả về, xác nhận số tiền trước khi huỷ; hiển thị trạng thái hoàn tiền và ẩn QR sau khi hoàn
+- Khi ban tổ chức huỷ suất: hiển thị lý do và tiến độ hoàn tiền trên đơn, ẩn QR/in vé ngay; khoá chọn ghế và dẫn khách đến các suất khác. Vé đã soát được hướng dẫn liên hệ ban tổ chức để xử lý riêng.
 
 **Quản trị** (tài khoản `ADMIN`)
 - Tổng quan: doanh thu, vé đã bán, biểu đồ 14 ngày, đơn theo trạng thái, sự kiện bán chạy
@@ -27,12 +30,13 @@ React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ tr
 - Soát vé: quét mã QR **bằng camera điện thoại/máy tính** (dùng BarcodeDetector của trình duyệt nếu có, không thì jsQR; chỉ chạy trên HTTPS hoặc localhost), bằng máy quét (gõ phím + Enter) hoặc nhập tay; báo cho vào / vé đã quét / mã sai, có âm báo, lưu lịch sử lượt quét. Đã kiểm chứng trên Chrome thật với camera giả phát đúng mã QR của vé
 - Giờ suất diễn luôn nhập/hiển thị theo múi giờ của sự kiện (mặc định `Asia/Ho_Chi_Minh`), không phụ thuộc múi giờ máy
 - Mở chi tiết đơn từ danh sách quản trị để hoàn vé ngoài thời hạn; vé đã soát không thể hoàn
+- Huỷ suất diễn với lý do gửi cho khách, theo dõi số đơn đã hoàn/đang chờ/lỗi và kích hoạt kiểm tra lại các đơn đến hạn. Các lần thử lại vẫn tuân theo thời gian chờ của backend.
 
 ## Chạy
 
 Cần backend đang chạy (xem README của BE_datve), mặc định ở `http://localhost:8080`.
 
-Backend cần chạy migration V4/V5. Cấu hình `APP_URL` trỏ tới URL frontend và `SMTP_URL` ở backend để nhận email thật; khi dev chưa có SMTP, liên kết đặt lại mật khẩu nằm trong log backend. Thanh toán/hoàn tiền vẫn là giả lập.
+Backend cần chạy `npm run migrate` đến **V9** (huỷ suất diễn), bật `SCHEDULER_ENABLED=true` để xử lý hàng đợi hoàn tiền/email. Cấu hình `APP_URL` trỏ tới URL frontend và `SMTP_URL` ở backend để nhận email thật; khi dev chưa có SMTP, liên kết đặt lại mật khẩu nằm trong log backend. Thanh toán/hoàn tiền vẫn là giả lập.
 
 ```bash
 cp .env.example .env     # tuỳ chọn
