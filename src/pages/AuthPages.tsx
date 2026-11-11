@@ -77,7 +77,6 @@ export function LoginPage() {
           {busy && <span className="spinner" />}
           Đăng nhập
         </button>
-        <Link to="/forgot-password">Quên mật khẩu?</Link>
         <p className="muted" style={{ textAlign: 'center' }}>
           Chưa có tài khoản?{' '}
           <Link to="/register" state={location_state(target)}>

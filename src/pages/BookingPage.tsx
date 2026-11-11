@@ -4,7 +4,6 @@ import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { api } from '../api/endpoints'
 import type { Booking } from '../api/types'
-import { useAuth } from '../auth/useAuth'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Countdown } from '../components/Countdown'
 import { Icon } from '../components/Icon'
@@ -17,7 +16,6 @@ import { bookingCode, formatDate, formatDateTime, formatTime, formatTimeRange, f
 import { categoryLabel } from '../lib/seats'
 import { uuid } from '../lib/uuid'
 import { useDocumentTitle } from '../lib/useDocumentTitle'
-import { useNow } from '../lib/useNow'
 
 const POLL_MS = 5000
 const isLive = (status: Booking['status'] | undefined) => status === 'PENDING' || status === 'PAYMENT_PROCESSING'
@@ -105,10 +103,7 @@ export function BookingPage() {
   const valid = Number.isFinite(id)
   const queryClient = useQueryClient()
   const toast = useToast()
-  const { user } = useAuth()
-  const now = useNow(1000)
   const [confirmCancel, setConfirmCancel] = useState(false)
-  const [confirmRefund, setConfirmRefund] = useState(false)
   const [simulateFail, setSimulateFail] = useState(false)
   // Một lần thử thanh toán dùng một Idempotency-Key; chỉ đổi key khi lần thử đã có kết quả dứt khoát
   const idempotencyKey = useRef<string | null>(null)
@@ -164,21 +159,6 @@ export function BookingPage() {
     },
   })
 
-  const refund = useMutation({
-    mutationFn: () => api.refundBooking(id),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(['booking', id], updated)
-      setConfirmRefund(false)
-      toast.show('Đã huỷ vé và hoàn tiền thành công', 'success')
-      refresh()
-    },
-    onError: (error) => {
-      setConfirmRefund(false)
-      toast.show(errorMessage(error), 'error')
-      refresh()
-    },
-  })
-
   if (!valid) return <ErrorState error={new ApiError(404, 'NOT_FOUND', 'Đơn không hợp lệ')} />
   if (booking.isPending) return <Spinner />
   if (booking.isError) {
@@ -194,8 +174,6 @@ export function BookingPage() {
 
   const b = booking.data
   const processing = b.status === 'PAYMENT_PROCESSING' || pay.isPending
-  const beforeRefundDeadline = !!b.refundableUntil && Date.parse(b.refundableUntil) > now
-  const canRefund = b.status === 'CONFIRMED' && !b.checkedInAt && (user?.role === 'ADMIN' || beforeRefundDeadline)
 
   return (
     <div className="container page">
@@ -241,33 +219,6 @@ export function BookingPage() {
             Đặt vé thành công! Hãy xuất trình mã đặt vé khi vào cửa.
           </p>
           <Ticket booking={b} />
-          <section className="card card-pad stack no-print" aria-label="Chính sách hoàn vé">
-            <h2>Huỷ vé và hoàn tiền</h2>
-            {b.checkedInAt ? (
-              <p className="muted">Vé đã được soát tại cửa nên không thể hoàn tiền.</p>
-            ) : (
-              <>
-                <p className="muted">
-                  {beforeRefundDeadline
-                    ? `Bạn có thể huỷ vé và nhận lại ${formatVnd(b.totalAmount)} trước ${formatDateTime(b.refundableUntil!)}.`
-                    : 'Đã quá thời hạn tự hoàn vé. Vui lòng liên hệ đơn vị tổ chức nếu cần hỗ trợ.'}
-                </p>
-                {user?.role === 'ADMIN' && !beforeRefundDeadline && (
-                  <p className="alert alert-warning">Bạn có quyền quản trị để hoàn vé này ngoài thời hạn.</p>
-                )}
-                {canRefund && (
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    disabled={refund.isPending}
-                    onClick={() => setConfirmRefund(true)}
-                  >
-                    Huỷ vé và hoàn tiền
-                  </button>
-                )}
-              </>
-            )}
-          </section>
           <div className="row row-wrap no-print">
             <button type="button" className="btn btn-outline" onClick={() => window.print()}>
               <Icon name="printer" /> In vé
@@ -364,32 +315,6 @@ export function BookingPage() {
         </div>
       )}
 
-      <ConfirmDialog
-        open={confirmRefund}
-        title="Huỷ vé và hoàn tiền?"
-        confirmLabel="Xác nhận hoàn tiền"
-        danger
-        busy={refund.isPending}
-        onConfirm={() => {
-          if (canRefund) refund.mutate()
-        }}
-        onCancel={() => {
-          if (!refund.isPending) setConfirmRefund(false)
-        }}
-      >
-        <p>
-          Vé {bookingCode(b.id)} sẽ hết hiệu lực. Các ghế {b.seats.map((s) => s.seatCode).join(', ')} sẽ được trả lại.
-        </p>
-        <p>
-          Số tiền hoàn: <strong>{formatVnd(b.totalAmount)}</strong>. Thao tác này không thể hoàn tác.
-        </p>
-        <p className="field-hint">Hệ thống đang dùng cổng thanh toán giả lập, không phát sinh giao dịch tiền thật.</p>
-        {!canRefund && (
-          <p className="alert alert-warning" role="alert">
-            Vé hiện không còn đủ điều kiện hoàn tiền. Vui lòng quay lại.
-          </p>
-        )}
-      </ConfirmDialog>
       <ConfirmDialog
         open={confirmCancel}
         title="Huỷ đơn đặt vé?"

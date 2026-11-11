@@ -11,7 +11,6 @@ import { MyBookingsPage } from './pages/MyBookingsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SeatSelectionPage } from './pages/SeatSelectionPage'
 import { AccountPage } from './pages/AccountPage'
-import { ForgotPasswordPage, ResetPasswordPage } from './pages/PasswordPages'
 
 // Trang quản trị ít người dùng nên tách chunk riêng
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
@@ -20,8 +19,6 @@ const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsPage'))
 const AdminEventPage = lazy(() => import('./pages/admin/AdminEventPage'))
 const AdminBookingsPage = lazy(() => import('./pages/admin/AdminBookingsPage'))
 const CheckInPage = lazy(() => import('./pages/admin/CheckInPage'))
-const UsersPage = lazy(() => import('./pages/admin/UsersPage'))
-const EmailsPage = lazy(() => import('./pages/admin/EmailsPage'))
 
 export default function App() {
   return (
@@ -49,8 +46,6 @@ export default function App() {
           />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
-          <Route path="forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="reset-password" element={<ResetPasswordPage />} />
           <Route
             path="account"
             element={
@@ -71,8 +66,6 @@ export default function App() {
             <Route path="events" element={<AdminEventsPage />} />
             <Route path="events/:id" element={<AdminEventPage />} />
             <Route path="bookings" element={<AdminBookingsPage />} />
-            <Route path="users" element={<UsersPage />} />
-            <Route path="emails" element={<EmailsPage />} />
             <Route path="check-in" element={<CheckInPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />

@@ -1,11 +1,9 @@
-# Chạy cả hệ thống để thử hoặc demo: PostgreSQL + API (build từ repo BE_datve) + web (nginx).
+# Chạy cả hệ thống để thử hoặc demo: PostgreSQL + API Java (build từ repo BE_ticket) + web (nginx).
 #
 #   JWT_SECRET=$(openssl rand -hex 32) docker compose up -d --build
-#   # (tuỳ chọn) nạp dữ liệu mẫu và tài khoản admin/khách:
-#   docker compose run --rm -e NODE_ENV=development api node scripts/seed.js
 #
-# Mở http://localhost:8081. Tài khoản mẫu sau khi seed: admin@datve.local / Admin@12345.
-# Chưa cấu hình SMTP_URL nên email (đặt lại mật khẩu, vé) không được gửi đi.
+# Mở http://localhost:8081. API tự chạy migration và tạo dữ liệu mẫu (profile demo):
+# user@datve.local / User@12345, admin@datve.local / DEMO_ADMIN_PASSWORD (mặc định Admin@12345).
 services:
   postgres:
     image: postgres:18
@@ -23,23 +21,20 @@ services:
       retries: 10
 
   api:
-    # Build thẳng từ GitHub; đổi #master thành tag/commit để cố định phiên bản
-    build: https://github.com/lethanh2006/BE_datve.git#master
+    # Build thẳng từ GitHub; đổi #main thành tag/commit để cố định phiên bản
+    build: https://github.com/lethanh2006/BE_ticket.git#main
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       PORT: 8080
-      DB_HOST: postgres
-      DB_NAME: datve_db
+      SPRING_PROFILES_ACTIVE: prod,demo
+      DB_URL: jdbc:postgresql://postgres:5432/datve_db
       DB_USERNAME: datve_user
       DB_PASSWORD: ${DB_PASSWORD:-datve_demo_password}
       JWT_SECRET: ${JWT_SECRET:?Cần đặt JWT_SECRET (openssl rand -hex 32)}
-      APP_URL: http://localhost:${WEB_PORT:-8081}
-      TRUST_PROXY: "true"
-    # Áp dụng migration rồi mới nhận request
-    command: ["sh", "-c", "node scripts/migrate.js && node dist/main"]
+      DEMO_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD:-Admin@12345}
 
   web:
     build: .

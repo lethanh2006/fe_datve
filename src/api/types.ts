@@ -1,4 +1,4 @@
-// Kiểu dữ liệu khớp với response của backend NestJS (BE_nestjs).
+// Kiểu dữ liệu khớp với response của backend Java Spring Boot (BE_ticket).
 
 export type Role = 'USER' | 'ADMIN'
 
@@ -146,42 +146,6 @@ export interface CheckInResponse {
   booking: Booking
 }
 
-export interface AdminUser {
-  id: number
-  email: string
-  fullName: string
-  role: Role
-  createdAt: string
-  /** Thời điểm bị khoá, null nếu đang hoạt động */
-  disabledAt: string | null
-  confirmedBookings: number
-  totalSpent: number
-}
 
-export type EmailStatus = 'PENDING' | 'SENT' | 'FAILED'
 
-export interface AdminEmail {
-  id: number
-  to: string
-  subject: string
-  status: EmailStatus
-  attempts: number
-  nextAttemptAt: string
-  lastError: string | null
-  createdAt: string
-  sentAt: string | null
-}
 
-export interface CancellationStatus {
-  showtimeId: number
-  cancelledAt: string
-  reason: string | null
-  /** Đơn đã thanh toán, chưa soát vé và chưa được hoàn tiền */
-  pendingRefunds: number
-  refunded: number
-  /** Đơn đã soát vé trước khi huỷ nên không tự hoàn */
-  checkedIn: number
-  /** Đơn đang thanh toán dở; xong thì sẽ tự được hoàn */
-  paymentsInProgress: number
-  failures: { bookingId: number; attempts: number; error: string }[]
-}

@@ -1,6 +1,8 @@
 # ĐặtVé - Frontend
 
-Giao diện đặt vé sự kiện cho backend NestJS ([BE_datve](https://github.com/lethanh2006/BE_datve)).
+Giao diện đặt vé sự kiện cho backend Java Spring Boot ([BE_ticket](https://github.com/lethanh2006/BE_ticket)).
+
+**Bản chạy thử:** https://datve-lethanh.vercel.app (tài khoản khách `user@datve.local` / `User@12345`).
 React 19 + TypeScript + Vite, React Router, TanStack Query; CSS thuần, hỗ trợ chế độ tối theo hệ điều hành.
 
 Giao diện gồm banner sân khấu, tìm kiếm nổi, bộ lọc thể loại, thẻ sự kiện và hướng dẫn đặt vé; bố cục dùng được từ màn hình điện thoại đến desktop. Các trang sự kiện, tài khoản, vé và quản trị dùng chung màu sắc, kiểu chữ và khoảng cách. Ảnh banner WebP 112 KB nằm trong repo, không phụ thuộc dịch vụ ảnh bên ngoài; xem [nguồn ảnh và prompt](docs/visual-assets.md).
@@ -17,26 +19,19 @@ Giao diện gồm banner sân khấu, tìm kiếm nổi, bộ lọc thể loại
 - Vé điện tử có mã QR (vẽ bằng SVG, đã kiểm chứng giải mã ra đúng mã vé) và mã đặt vé, in được; danh sách đơn của tôi theo trạng thái
 - Đăng ký, đăng nhập (JWT); tự đăng xuất khi token hết hạn
 - Trang `/account`: sửa họ tên, đổi mật khẩu và giữ phiên hiện tại bằng token mới
-- Quên/đặt lại mật khẩu qua email (`/forgot-password`, `/reset-password?token=...`), kiểm tra xác nhận mật khẩu và giới hạn UTF-8
-- Hoàn vé đã thanh toán trong thời hạn do backend trả về, xác nhận số tiền trước khi huỷ; hiển thị trạng thái hoàn tiền và ẩn QR sau khi hoàn
-- Khi ban tổ chức huỷ suất: hiển thị lý do và tiến độ hoàn tiền trên đơn, ẩn QR/in vé ngay; khoá chọn ghế và dẫn khách đến các suất khác. Vé đã soát được hướng dẫn liên hệ ban tổ chức để xử lý riêng.
 
 **Quản trị** (tài khoản `ADMIN`)
 - Tổng quan: doanh thu, vé đã bán, biểu đồ 14 ngày, đơn theo trạng thái, sự kiện bán chạy
 - Thêm/sửa/xoá sự kiện; thêm suất diễn kèm sinh ghế theo khu (`A-D`, số ghế/hàng, giá); thêm ghế; xoá suất
 - Danh sách mọi đơn kèm thông tin khách, lọc theo trạng thái và khách hàng
-- Người dùng: tìm kiếm, lọc theo vai trò/trạng thái, xem số đơn và tổng chi tiêu, nâng/hạ quyền admin, khoá/mở khoá tài khoản (khoá thì bị đăng xuất ngay; không tự khoá hay tự đổi quyền của mình)
-- Email: xem hàng đợi email của hệ thống (đã gửi / đang thử lại / thất bại kèm lỗi gần nhất) và gửi lại thư thất bại
 - Soát vé: quét mã QR **bằng camera điện thoại/máy tính** (dùng BarcodeDetector của trình duyệt nếu có, không thì jsQR; chỉ chạy trên HTTPS hoặc localhost), bằng máy quét (gõ phím + Enter) hoặc nhập tay; báo cho vào / vé đã quét / mã sai, có âm báo, lưu lịch sử lượt quét. Đã kiểm chứng trên Chrome thật với camera giả phát đúng mã QR của vé
 - Giờ suất diễn luôn nhập/hiển thị theo múi giờ của sự kiện (mặc định `Asia/Ho_Chi_Minh`), không phụ thuộc múi giờ máy
-- Mở chi tiết đơn từ danh sách quản trị để hoàn vé ngoài thời hạn; vé đã soát không thể hoàn
-- Huỷ suất diễn với lý do gửi cho khách, theo dõi số đơn đã hoàn/đang chờ/lỗi và kích hoạt kiểm tra lại các đơn đến hạn. Các lần thử lại vẫn tuân theo thời gian chờ của backend.
 
 ## Chạy
 
-Cần backend đang chạy (xem README của BE_datve), mặc định ở `http://localhost:8080`.
+Cần backend đang chạy (xem README của [BE_ticket](https://github.com/lethanh2006/BE_ticket)), mặc định ở `http://localhost:8080`.
 
-Backend cần chạy `npm run migrate` đến **V9** (huỷ suất diễn), bật `SCHEDULER_ENABLED=true` để xử lý hàng đợi hoàn tiền/email. Cấu hình `APP_URL` trỏ tới URL frontend và `SMTP_URL` ở backend để nhận email thật; khi dev chưa có SMTP, liên kết đặt lại mật khẩu nằm trong log backend. Thanh toán/hoàn tiền vẫn là giả lập.
+Backend tự chạy migration Flyway khi khởi động; profile `dev` tạo sẵn tài khoản và sự kiện mẫu. Thanh toán là giả lập.
 
 ```bash
 cp .env.example .env     # tuỳ chọn
@@ -60,24 +55,23 @@ docker build -t datve-web .
 docker run -p 8081:80 -e BACKEND_URL=http://host.docker.internal:8080 datve-web   # http://localhost:8081
 ```
 
-Image gồm nginx phục vụ bản build, trả `index.html` cho mọi đường dẫn SPA, chuyển tiếp `/api/` sang `BACKEND_URL` (riêng luồng SSE `/api/showtimes/<id>/seats/events` được tắt đệm và cho giữ kết nối lâu, nếu proxy khác nginx thì cũng phải tắt buffering cho đường dẫn này), cache vô thời hạn cho `/assets/`, kèm header bảo mật và CSP (script chỉ từ chính site). Nếu FE và API ở hai domain khác nhau, build với `--build-arg VITE_API_BASE_URL=https://api.example.com` và đặt `CORS_ORIGINS` ở backend.
+Image gồm nginx phục vụ bản build, trả `index.html` cho mọi đường dẫn SPA, chuyển tiếp `/api/` sang `BACKEND_URL` (riêng luồng SSE `/api/showtimes/<id>/seats/events` được tắt đệm và cho giữ kết nối lâu, nếu proxy khác nginx thì cũng phải tắt buffering cho đường dẫn này), cache vô thời hạn cho `/assets/`, kèm header bảo mật và CSP (script chỉ từ chính site). Nếu FE và API ở hai domain khác nhau, build với `--build-arg VITE_API_BASE_URL=https://api.example.com` và đặt `APP_CORS_ALLOWED_ORIGINS` ở backend.
 
 ### Chạy cả hệ thống bằng một lệnh
 
-`docker-compose.yaml` dựng PostgreSQL + API (build thẳng từ repo [BE_datve](https://github.com/lethanh2006/BE_datve)) + web:
+`docker-compose.yaml` dựng PostgreSQL + API (build thẳng từ repo [BE_ticket](https://github.com/lethanh2006/BE_ticket)) + web:
 
 ```bash
-JWT_SECRET=$(openssl rand -hex 32) docker compose up -d --build     # http://localhost:8081
-docker compose run --rm -e NODE_ENV=development api node scripts/seed.js   # (tuỳ chọn) dữ liệu mẫu
+JWT_SECRET=$(openssl rand -hex 32) docker compose up -d --build     # http://localhost:8081, có sẵn dữ liệu mẫu
 ```
 
-Cơ sở dữ liệu không mở cổng ra ngoài. Chưa cấu hình `SMTP_URL` nên email không được gửi đi; đặt thêm biến này cho service `api` khi cần.
+Cơ sở dữ liệu không mở cổng ra ngoài.
 
 ## Biến môi trường
 
 | Biến | Ý nghĩa |
 |---|---|
-| `VITE_API_BASE_URL` | URL backend khi deploy tách domain (để trống = cùng origin). Backend cần cho phép origin của FE trong `CORS_ORIGINS` |
+| `VITE_API_BASE_URL` | URL backend khi deploy tách domain (để trống = cùng origin). Backend cần cho phép origin của FE trong `APP_CORS_ALLOWED_ORIGINS` |
 | `VITE_TIME_ZONE` | Múi giờ hiển thị giờ diễn, mặc định `Asia/Ho_Chi_Minh` |
 | `BACKEND_URL` | Chỉ cho dev server: backend để proxy tới |
 
@@ -100,6 +94,5 @@ src/
 
 - Token JWT lưu ở `localStorage` để giữ phiên khi tải lại trang; mọi dữ liệu hiển thị đều được React escape, không dùng `dangerouslySetInnerHTML`.
 - Ghế và giá hiển thị chỉ để xem; số tiền thật do server tính từ DB khi giữ ghế và khi thanh toán.
-- Thời hạn hoàn vé lấy từ `refundableUntil`, đối chiếu giờ server; API luôn kiểm tra lại quyền, thời hạn và trạng thái vé. Sau hoàn tiền, cache đơn, ghế và thống kê được làm mới.
 - Token mới sau đổi mật khẩu thay thế token cũ ngay; phản hồi 401 của request cũ về muộn không làm mất phiên mới.
-- Ô "Giả lập thanh toán thất bại" chỉ có ở dev server (`import.meta.env.DEV`) và chỉ có tác dụng khi backend bật `PAYMENT_ALLOW_SIMULATION`.
+- Ô "Giả lập thanh toán thất bại" chỉ có ở dev server (`import.meta.env.DEV`); backend dùng cổng thanh toán giả lập.

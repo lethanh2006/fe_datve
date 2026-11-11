@@ -1,18 +1,13 @@
 import { request } from './client'
 import type {
-  AdminEmail,
-  AdminUser,
   AuthResponse,
   Booking,
-  CheckInResponse,
-  EmailStatus,
   BookingStatus,
-  CancellationStatus,
+  CheckInResponse,
   EventInput,
   EventSummary,
   Page,
   Payment,
-  Role,
   Seat,
   SeatSectionInput,
   Showtime,
@@ -21,6 +16,7 @@ import type {
   User,
 } from './types'
 
+// Các endpoint do backend Java (Spring Boot) cung cấp
 export const api = {
   // ---- tài khoản ----
   login: (email: string, password: string) =>
@@ -31,10 +27,6 @@ export const api = {
   updateProfile: (fullName: string) => request<User>('/api/auth/me', { method: 'PUT', body: { fullName } }),
   changePassword: (currentPassword: string, newPassword: string) =>
     request<AuthResponse>('/api/auth/password', { method: 'PUT', body: { currentPassword, newPassword } }),
-  forgotPassword: (email: string) =>
-    request<{ message: string }>('/api/auth/forgot-password', { method: 'POST', body: { email } }),
-  resetPassword: (token: string, password: string) =>
-    request<void>('/api/auth/reset-password', { method: 'POST', body: { token, password } }),
 
   // ---- danh mục ----
   events: (query: { q?: string; category?: string; page?: number; size?: number }) =>
@@ -52,7 +44,6 @@ export const api = {
     request<Page<Booking>>('/api/bookings', { query }),
   booking: (id: number) => request<Booking>(`/api/bookings/${id}`),
   cancelBooking: (id: number) => request<Booking>(`/api/bookings/${id}/cancel`, { method: 'POST' }),
-  refundBooking: (id: number) => request<Booking>(`/api/bookings/${id}/refund`, { method: 'POST', body: {} }),
   pay: (bookingId: number, idempotencyKey: string, simulate?: 'SUCCESS' | 'FAILED') =>
     request<Payment>(`/api/bookings/${bookingId}/payments`, {
       method: 'POST',
@@ -66,15 +57,6 @@ export const api = {
     request<Page<Booking>>('/api/admin/bookings', { query }),
   checkIn: (ticketCode: string) =>
     request<CheckInResponse>('/api/admin/bookings/check-in', { method: 'POST', body: { ticketCode } }),
-  adminUsers: (query: { q?: string; role?: Role; status?: 'ACTIVE' | 'DISABLED'; page?: number; size?: number }) =>
-    request<Page<AdminUser>>('/api/admin/users', { query }),
-  setUserRole: (id: number, role: Role) =>
-    request<AdminUser>(`/api/admin/users/${id}/role`, { method: 'PUT', body: { role } }),
-  setUserDisabled: (id: number, disabled: boolean) =>
-    request<AdminUser>(`/api/admin/users/${id}/status`, { method: 'PUT', body: { disabled } }),
-  adminEmails: (query: { status?: EmailStatus; page?: number; size?: number }) =>
-    request<Page<AdminEmail>>('/api/admin/emails', { query }),
-  retryEmail: (id: number) => request<{ message: string }>(`/api/admin/emails/${id}/retry`, { method: 'POST' }),
   createEvent: (input: EventInput) => request<EventSummary>('/api/admin/events', { method: 'POST', body: input }),
   updateEvent: (id: number, input: EventInput) =>
     request<EventSummary>(`/api/admin/events/${id}`, { method: 'PUT', body: input }),
@@ -83,8 +65,5 @@ export const api = {
     request<Showtime>(`/api/admin/events/${eventId}/showtimes`, { method: 'POST', body: input }),
   addSeats: (showtimeId: number, sections: SeatSectionInput[]) =>
     request<Showtime>(`/api/admin/showtimes/${showtimeId}/seats`, { method: 'POST', body: { sections } }),
-  cancelShowtime: (id: number, reason: string) =>
-    request<CancellationStatus>(`/api/admin/showtimes/${id}/cancel`, { method: 'POST', body: { reason } }),
-  cancellationStatus: (id: number) => request<CancellationStatus>(`/api/admin/showtimes/${id}/cancellation`),
   deleteShowtime: (id: number) => request<void>(`/api/admin/showtimes/${id}`, { method: 'DELETE' }),
 }
